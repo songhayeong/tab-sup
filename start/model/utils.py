@@ -52,4 +52,6 @@ def get_score_fn(model, train=False, sampling=False):
                 # when sampling return true score (not log used for training)
                 return score.exp()
 
+            return score
+
     return score_fn

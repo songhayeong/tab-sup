@@ -16,24 +16,63 @@ from .model import utils as mutils
 
 
 def get_loss_fn(noise, graph, train, sampling_eps=1e-3, lv=False):
+    group_sizes = getattr(graph, "group_sizes", None)
+    group_starts_tensor = getattr(graph, "group_starts", None)
+
+    if group_sizes is not None:
+        group_sizes = list(group_sizes)
+
+    def tokens_to_features(tokens: torch.Tensor) -> torch.Tensor:
+        if tokens is None or tokens.numel() == 0 or not group_sizes:
+            return torch.empty(tokens.shape[0], 0, device=tokens.device)
+        one_hots = [
+            F.one_hot(tokens[:, idx], num_classes=size).float()
+            for idx, size in enumerate(group_sizes)
+        ]
+        return torch.cat(one_hots, dim=-1)
+
+    def to_global(tokens: torch.Tensor) -> torch.Tensor:
+        if group_starts_tensor is None or tokens.numel() == 0:
+            return tokens
+        starts = group_starts_tensor.to(tokens.device)
+        return tokens + starts
+
+    def from_global(tokens: torch.Tensor) -> torch.Tensor:
+        if group_starts_tensor is None or tokens.numel() == 0:
+            return tokens
+        starts = group_starts_tensor.to(tokens.device)
+        return tokens - starts
 
     def loss_fn(model, batch, cond=None, t=None, perturbed_batch=None):
-        """
-        Batch shape: [B, L] int. D given from graph
-        """
+        tokens = batch['tokens']
+        numeric = batch['numeric']
+        device = tokens.device
+
+        if numeric is not None and numeric.numel() > 0:
+            raise ValueError("Numeric features are not supported in the current discrete diffusion setup.")
+
+        batch_size = tokens.shape[0]
+
         if t is None:
             if lv:
                 raise NotImplementedError("Yeah I gotta do this later")
             else:
-                t = (1-sampling_eps)*torch.rand(batch.shape[0], device=batch.device) + sampling_eps
+                t = (1 - sampling_eps) * torch.rand(batch_size, device=device) + sampling_eps
         sigma, dsigma = noise(t)
 
+        tokens_global = to_global(tokens)
         if perturbed_batch is None:
-            perturbed_batch = graph.sample_transition(batch, sigma[:, None])
+            perturbed_global = graph.sample_transition(tokens_global, sigma)
+        else:
+            perturbed_global = perturbed_batch
+
+        perturbed_tokens = from_global(perturbed_global)
+        cat_features = tokens_to_features(perturbed_tokens)
+        features = cat_features
 
         log_score_fn = mutils.get_score_fn(model, train=train, sampling=False)
-        log_score = log_score_fn(perturbed_batch, sigma)
-        loss = graph.score_entropy(log_score, sigma[:, None], perturbed_batch, batch)
+        log_score = log_score_fn(features, sigma)
+        loss = graph.score_entropy(log_score, sigma, perturbed_global, tokens_global)
 
         loss = (dsigma[:, None] * loss).sum(dim=-1)
 
@@ -97,7 +136,7 @@ def get_step_fn(noise, graph, train, optimize_fn, accum):
         if train:
             optimizer = state['optimizer']
             scaler = state['scaler']
-            loss = loss_fn(model, batch, cond=cond).mean() / accum
+            loss = loss_fn(model, batch).mean() / accum
 
             scaler.scale(loss).backward()
 
@@ -119,7 +158,7 @@ def get_step_fn(noise, graph, train, optimize_fn, accum):
                 ema = state['ema']
                 ema.store(model.parameters())
                 ema.copy_to(model.parameters())
-                loss = loss_fn(model, batch, cond=cond).mean()
+                loss = loss_fn(model, batch).mean()
                 ema.restore(model.parameters())
 
         return loss

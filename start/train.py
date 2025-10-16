@@ -110,6 +110,7 @@ def _get_dataloaders(
         split="train",
         shuffle=cfg.shuffle,
         batch_size=cfg.batch_size,
+        num_workers=cfg.num_workers,
     )
 
     val_loader = None
@@ -119,17 +120,10 @@ def _get_dataloaders(
             split="val",
             shuffle=False,
             batch_size=cfg.eval_batch_size or cfg.batch_size,
+            num_workers=cfg.num_workers,
         )
 
     return train_loader, val_loader
-
-
-def _count_tokens(dataset: Dataset) -> int:
-    if dataset.X_num is not None:
-        return dataset.X_num["train"].shape[1]
-    if dataset.X_cat is not None:
-        return dataset.X_cat["train"].shape[1]
-    raise ValueError("Dataset does not contain numerical or categorical features.")
 
 
 def build_model(cfg: ModelConfig, dataset: Dataset, input_dim: int) -> torch.nn.Module:
@@ -196,31 +190,25 @@ def evaluate(
     step_fn,
     state: Dict[str, Any],
     device: torch.device,
-    model_cfg: ModelConfig,
 ) -> float:
     losses = []
     with torch.no_grad():
-        for batch, cond in _iter_batches(eval_loader, device, model_cfg.is_y_cond):
-            loss = step_fn(state, batch, cond=cond)
+        for batch in _iter_batches(eval_loader, device):
+            loss = step_fn(state, batch)
             losses.append(loss.item())
     return float(sum(losses) / max(len(losses), 1))
 
 
-def _iter_batches(loader: DataLoader, device: torch.device, use_cond: bool):
+def _iter_batches(loader: DataLoader, device: torch.device):
     for batch in loader:
-        if isinstance(batch, (list, tuple)):
-            data, meta = batch
-            cond = meta.get("y") if isinstance(meta, dict) else None
-        else:
-            data, cond = batch, None
-
-        data = data.to(device)
-        if use_cond and cond is not None:
-            cond = cond.to(device)
-        else:
-            cond = None
-
-        yield data.long(), cond
+        tokens = batch['tokens'].to(device)
+        numeric = batch['numeric'].to(device) if batch['numeric'].numel() > 0 else None
+        y = batch['y'].to(device)
+        yield {
+            'tokens': tokens,
+            'numeric': numeric,
+            'y': y,
+        }
 
 
 def train(config: Config) -> None:
@@ -236,7 +224,7 @@ def train(config: Config) -> None:
     )
 
     train_loader, val_loader = _get_dataloaders(dataset, config.dataset)
-    input_dim = _count_tokens(dataset)
+    input_dim = graph.dim
     model = build_model(config.model, dataset, input_dim).to(device)
 
     noise = get_noise(config)
@@ -277,12 +265,12 @@ def train(config: Config) -> None:
         if config.train.max_steps and state["step"] >= config.train.max_steps:
             break
 
-        for batch_idx, (batch, cond) in enumerate(_iter_batches(train_loader, device, config.model.is_y_cond)):
+        for batch_idx, batch in enumerate(_iter_batches(train_loader, device)):
             if config.train.max_steps and state["step"] >= config.train.max_steps:
                 break
 
             prev_step = state["step"]
-            loss = train_step_fn(state, batch, cond=cond)
+            loss = train_step_fn(state, batch)
 
             if state["step"] != prev_step:
                 if state["step"] % config.train.log_every == 0:
@@ -293,7 +281,7 @@ def train(config: Config) -> None:
                     and config.train.eval_every > 0
                     and state["step"] % config.train.eval_every == 0
                 ):
-                    val_loss = evaluate(val_loader, eval_step_fn, state, device, config.model)
+                    val_loss = evaluate(val_loader, eval_step_fn, state, device)
                     print(f"Validation at step {state['step']}: loss {val_loss:.4f}")
                     best_val = min(best_val, val_loss)
 
@@ -309,7 +297,7 @@ def train(config: Config) -> None:
                 break
 
         if val_loader is not None and eval_step_fn is not None:
-            val_loss = evaluate(val_loader, eval_step_fn, state, device, config.model)
+            val_loss = evaluate(val_loader, eval_step_fn, state, device)
             print(f"[epoch {epoch}] Validation loss: {val_loss:.4f}")
             best_val = min(best_val, val_loss)
 

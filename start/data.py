@@ -306,7 +306,7 @@ def cat_encode(
 
         encoder = make_pipeline(oe)
         encoder.fit(X['train'])
-        X = {k: encoder.transform(v) for k, v in X.items()}
+        X = {k: encoder.transform(v).astype(np.int64) for k, v in X.items()}
         max_values = X['train'].max(axis=0)
         for part in X.keys():
             if part == 'train': continue
@@ -314,7 +314,10 @@ def cat_encode(
                 X[part][X[part][:, column_idx] == unknown_value, column_idx] = [
                     max_values[column_idx] + 1
                 ]
-        group_sizes = [len(cats) for cats in encoder.named_steps['ordinalencoder'].categories_]
+        group_sizes = []
+        for column_idx in range(X['train'].shape[1]):
+            column_max = max(int(X[part][:, column_idx].max()) for part in X)
+            group_sizes.append(column_max + 1)
         if return_encoder:
             setattr(encoder, 'group_sizes', group_sizes)
             return (X, False, encoder)
@@ -322,9 +325,15 @@ def cat_encode(
 
     # Step 2. Encode
     elif encoding == 'one-hot':
-        ohe = sklearn.preprocessing.OneHotEncoder(
-            handle_unknown='ignore', sparse=False, dtype=np.float32  # type: ignore[code]
-        )
+        encoder_kwargs = {
+            "handle_unknown": "ignore",
+            "dtype": np.float32,  # type: ignore[code]
+        }
+        if 'sparse_output' in sklearn.preprocessing.OneHotEncoder.__init__.__code__.co_varnames:  # type: ignore[attr-defined]
+            encoder_kwargs["sparse_output"] = False  # type: ignore[code]
+        else:
+            encoder_kwargs["sparse"] = False  # type: ignore[code]
+        ohe = sklearn.preprocessing.OneHotEncoder(**encoder_kwargs)  # type: ignore[code]
         encoder = make_pipeline(ohe)
 
         # encoder.steps.append({'ohe' , ohe})
@@ -482,9 +491,9 @@ class TabDataset(torch.utils.data.Dataset):
     def __init__(self, dataset: Dataset, split: Literal['train', 'val', 'test']):
         super().__init__()
 
-        self.X_num = torch.from_numpy(dataset.X_num[split]) if dataset.X_num is not None else None
-        self.X_cat = torch.from_numpy(dataset.X_cat[split]) if dataset.X_cat is not None else None
-        self.y = torch.from_numpy(dataset.y[split])
+        self.X_num = torch.from_numpy(dataset.X_num[split]).float() if dataset.X_num is not None else None
+        self.X_cat = torch.from_numpy(dataset.X_cat[split]).long() if dataset.X_cat is not None else None
+        self.y = torch.from_numpy(dataset.y[split]).float()
 
         assert self.y is not None
         assert self.X_num is not None or self.X_cat is not None
@@ -493,29 +502,28 @@ class TabDataset(torch.utils.data.Dataset):
         return len(self.y)
 
     def __getitem__(self, idx):
-        out_dict = {
-            'y': self.y[idx].long() if self.y is not None else None,
+        numeric = self.X_num[idx] if self.X_num is not None else torch.empty(0, dtype=torch.float32)
+        tokens = self.X_cat[idx] if self.X_cat is not None else torch.empty(0, dtype=torch.long)
+        sample = {
+            'tokens': tokens,
+            'numeric': numeric,
+            'y': self.y[idx],
         }
-
-        x = np.empty((0,))
-        if self.X_num is not None:
-            x = self.X_num[idx]
-        if self.X_cat is not None:
-            x = torch.cat([x, self.X_cat[idx]], dim=0)
-        return x.float(), out_dict
+        return sample
 
 
 def prepare_dataloader(
         dataset: Dataset,
         split: str,
         batch_size: int,
+        num_workers: int = 0,
 ):
     torch_dataset = TabDataset(dataset, split)
     loader = torch.utils.data.DataLoader(
         torch_dataset,
         batch_size=batch_size,
         shuffle=(split == 'train'),
-        num_workers=1,
+        num_workers=num_workers,
     )
     while True:
         yield from loader
@@ -526,9 +534,15 @@ def prepare_torch_dataloader(
         split: str,
         shuffle: bool,
         batch_size: int,
+        num_workers: int = 0,
 ) -> torch.utils.data.DataLoader:
     torch_dataset = TabDataset(dataset, split)
-    loader = torch.utils.data.DataLoader(torch_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=1)
+    loader = torch.utils.data.DataLoader(
+        torch_dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers,
+    )
 
     return loader
 

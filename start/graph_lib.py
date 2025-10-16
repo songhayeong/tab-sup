@@ -211,6 +211,7 @@ class BlockUniform(Graph):
             raise ValueError("Group sizes must be positive")
 
         self._group_sizes = torch.as_tensor(group_sizes, dtype=torch.long)
+        self._group_sizes_list = [int(x) for x in group_sizes]
         self._dim = int(self._group_sizes.sum().item())
         group_starts = torch.cumsum(self._group_sizes, dim=0) - self._group_sizes
         self._group_starts = group_starts
@@ -222,6 +223,7 @@ class BlockUniform(Graph):
             torch.arange(start.item(), start.item() + size.item(), dtype=torch.long)
             for start, size in zip(self._group_starts, self._group_sizes)
         ]
+        self._uniform_cache = {}
 
     @property
     def dim(self) -> int:
@@ -231,16 +233,20 @@ class BlockUniform(Graph):
     def absorb(self) -> bool:
         return False
 
+    @property
+    def group_sizes(self) -> Sequence[int]:
+        return self._group_sizes_list
+
+    @property
+    def group_starts(self) -> torch.Tensor:
+        return self._group_starts
+
     def _broadcast_buffers(self, device: torch.device) -> Tuple[torch.Tensor, ...]:
         return (
             self._group_sizes.to(device),
             self._group_starts.to(device),
             self._index_group.to(device),
         )
-
-    def _group_mask(self, starts: torch.Tensor, sizes: torch.Tensor, device: torch.device, n_items: int):
-        arange = torch.arange(self.dim, device=device)
-        return (arange >= starts[:, None]) & (arange < (starts + sizes)[:, None])
 
     def rate(self, i: torch.Tensor) -> torch.Tensor:
         device = i.device
@@ -251,15 +257,10 @@ class BlockUniform(Graph):
         sample_sizes = group_sizes[sample_group]
         sample_starts = group_starts[sample_group]
 
-        edge = torch.zeros(flat_i.shape[0], self.dim, device=device, dtype=torch.float32)
-        mask = self._group_mask(sample_starts, sample_sizes, device, flat_i.shape[0])
-        inv_sizes = torch.where(
-            sample_sizes > 0,
-            1.0 / sample_sizes.float(),
-            torch.zeros_like(sample_sizes, dtype=torch.float32)
-        )
-        edge[mask] = torch.repeat_interleave(inv_sizes, sample_sizes)
-
+        arange = torch.arange(self.dim, device=device)
+        mask = (arange >= sample_starts[:, None]) & (arange < (sample_starts + sample_sizes)[:, None])
+        inv_sizes = torch.where(sample_sizes > 0, 1.0 / sample_sizes.float(), torch.zeros_like(sample_sizes, dtype=torch.float32))
+        edge = mask.float() * inv_sizes[:, None]
         diag_values = -(sample_sizes.float() - 1.0) / sample_sizes.float()
         edge.scatter_(-1, flat_i[:, None], diag_values[:, None])
         return edge.view(*i.shape, self.dim)
@@ -271,21 +272,25 @@ class BlockUniform(Graph):
         device = i.device
         sigma = sigma.to(device)
         flat_i = i.reshape(-1)
-        flat_sigma = sigma.reshape(-1)
+        sigma_expanded = sigma
+        while sigma_expanded.ndim < i.ndim:
+            sigma_expanded = sigma_expanded.unsqueeze(-1)
+        sigma_expanded = sigma_expanded.expand_as(i)
+        flat_sigma = sigma_expanded.reshape(-1)
 
         group_sizes, group_starts, index_group = self._broadcast_buffers(device)
         sample_group = index_group[flat_i]
         sample_sizes = group_sizes[sample_group]
         sample_starts = group_starts[sample_group]
 
-        trans = torch.zeros(flat_i.shape[0], self.dim, device=device, dtype=torch.float32)
+        arange = torch.arange(self.dim, device=device)
+        mask = (arange >= sample_starts[:, None]) & (arange < (sample_starts + sample_sizes)[:, None])
         base = torch.where(
             sample_sizes > 0,
             (1 - torch.exp(-flat_sigma)) / sample_sizes.float(),
-            torch.zeros_like(flat_sigma, dtype=torch.float32)
+            torch.zeros_like(flat_sigma, dtype=torch.float32),
         )
-        mask = self._group_mask(sample_starts, sample_sizes, device, flat_i.shape[0])
-        trans[mask] = torch.repeat_interleave(base, sample_sizes)
+        trans = mask.float() * base[:, None]
         trans.scatter_(-1, flat_i[:, None], torch.zeros_like(flat_sigma)[:, None])
         row_sum = trans.sum(dim=-1, keepdim=True)
         diag = 1 - row_sum.squeeze(-1)
@@ -322,52 +327,25 @@ class BlockUniform(Graph):
 
     def score_entropy(self, score, sigma, x, x0):
         device = score.device
-        flat_score = score.reshape(-1, self.dim)
-        flat_sigma = sigma.reshape(-1)
-        flat_x = x.reshape(-1)
-        flat_x0 = x0.reshape(-1)
+        sigma = sigma.reshape(-1)
+        entropy = torch.zeros(score.shape[0], device=device, dtype=score.dtype)
 
-        _, group_starts, index_group = self._broadcast_buffers(device)
-        entropy = torch.zeros_like(flat_sigma, dtype=score.dtype)
+        for idx, size in enumerate(self._group_sizes_list):
+            start = self._group_starts[idx].item()
+            end = start + size
 
-        for group_idx, idxs in enumerate(self._group_indices):
-            idxs = idxs.to(device)
-            mask = index_group[flat_x] == group_idx
-            if not mask.any():
-                continue
+            uniform_graph = self._uniform_cache.get(size)
+            if uniform_graph is None:
+                uniform_graph = Uniform(size)
+                self._uniform_cache[size] = uniform_graph
 
-            sub_score = flat_score[mask][:, idxs]
-            sub_sigma = flat_sigma[mask]
-            sub_x = flat_x[mask] - group_starts[group_idx]
-            sub_x0 = flat_x0[mask] - group_starts[group_idx]
+            score_slice = score[:, start:end]
+            x_local = x[:, idx] - start
+            x0_local = x0[:, idx] - start
 
-            group_dim = sub_score.shape[-1]
-            esigm1 = torch.where(
-                sub_sigma < 0.5,
-                torch.expm1(sub_sigma),
-                torch.exp(sub_sigma) - 1
-            )
-            ratio = 1 - group_dim / (esigm1 + group_dim)
+            entropy += uniform_graph.score_entropy(score_slice, sigma, x_local, x0_local)
 
-            neg_term = sub_score.mean(dim=-1) - torch.gather(sub_score, -1, sub_x[:, None]).squeeze(-1) / group_dim
-            neg_term = torch.where(
-                sub_x == sub_x0,
-                ratio * neg_term,
-                torch.gather(sub_score, -1, sub_x0[:, None]).squeeze(-1) / esigm1 + neg_term
-            )
-
-            sexp = torch.exp(sub_score)
-            pos_term = sexp.mean(dim=-1) - torch.gather(sexp, -1, sub_x[:, None]).squeeze(-1) / group_dim
-
-            const = torch.where(
-                sub_x == sub_x0,
-                (group_dim - 1) / group_dim * ratio * (ratio.log() - 1),
-                ((-ratio.log() - 1) / ratio - (group_dim - 2)) / group_dim
-            )
-
-            entropy[mask] = pos_term - neg_term + const
-
-        return entropy.view_as(sigma)
+        return entropy
 
 
 class Absorbing(Graph):
