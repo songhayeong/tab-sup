@@ -1,12 +1,13 @@
-# tab-sup
+### Tab-SEDD (Sketch)
 
-### 9.14 impl description
-- transition matrix M
-- generator Q
+- Goal: mix SEDD’s discrete score-entropy scheme with Tab-DDPM’s tabular diffusion.  
+- Key idea: build a block-uniform transition matrix for one-hot features, train an MLP/ResNet diffusion model on top.
 
-### 9.16 impl descirption
-- add sedd module
+### Usage Snapshot
 
-### future impl
-- Future impl -> sampling to adult dataset for transition matrix
-- use sedd with transition matrix
+```bash
+python -m start.train --config configs/example.toml
+```
+
+Config needs dataset paths, graph type (`block_uniform`), noise schedule, and model/optim params.  
+Everything else (preprocessing → graph → training loop with EMA) wires itself.
