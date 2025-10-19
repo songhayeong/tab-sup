@@ -32,6 +32,7 @@ def get_loss_fn(noise, graph, train, sampling_eps=1e-3, lv=False):
         numeric = batch['numeric']
         device = tokens.device
         batch_size = tokens.shape[0]
+        has_numeric = numeric is not None and numeric.numel() > 0
 
         if t is None:
             if lv:
@@ -48,14 +49,28 @@ def get_loss_fn(noise, graph, train, sampling_eps=1e-3, lv=False):
 
         perturbed_tokens_local = graph.to_local(perturbed_global)
         cat_features = tokens_to_features(perturbed_tokens_local)
-        if numeric is not None and numeric.numel() > 0:
-            features = torch.cat([numeric.float(), cat_features], dim=-1) if cat_features.numel() > 0 else numeric.float()
+        perturbed_numeric = None
+        if has_numeric:
+            numeric = numeric.float()
+            sigma_expanded = sigma.view(-1, 1)
+            noise_eps = torch.randn_like(numeric)
+            perturbed_numeric = numeric + sigma_expanded * noise_eps
+            features = perturbed_numeric if cat_features.numel() == 0 else torch.cat(
+                [perturbed_numeric, cat_features], dim=-1
+            )
         else:
             features = cat_features
 
         log_score_fn = mutils.get_score_fn(model, train=train, sampling=False)
-        log_score = log_score_fn(features, sigma)
-        loss = graph.score_entropy(log_score, sigma, perturbed_global, tokens_global)
+        model_out = log_score_fn(features, sigma)
+        discrete_out = model_out[:, :graph.dim]
+        loss = graph.score_entropy(discrete_out, sigma, perturbed_global, tokens_global)
+        if has_numeric:
+            numeric_out = model_out[:, graph.dim:]
+            sigma_sq = sigma.view(-1, 1) ** 2
+            target_score = -(perturbed_numeric - numeric) / (sigma_sq + 1e-12)
+            numeric_loss = 0.5 * torch.sum((numeric_out - target_score) ** 2, dim=-1)
+            loss = loss + numeric_loss
         loss = dsigma * loss
 
         return loss

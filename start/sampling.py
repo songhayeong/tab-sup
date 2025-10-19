@@ -1,4 +1,6 @@
 import abc
+from typing import Optional
+
 import torch
 import torch.nn.functional as F
 import pandas as pd
@@ -142,14 +144,17 @@ def get_pc_sampler(
 
     @torch.no_grad()
     def pc_sampler(model):
-        base_score_fn = mutils.get_score_fn(model, train=False, sampling=True)
+        base_score_fn = mutils.get_score_fn(model, train=False, sampling=True, discrete_dim=graph.dim)
 
         if feature_fn is not None:
             def sampling_score_fn(tokens, sigma):
-                features = feature_fn(tokens)
-                return base_score_fn(features, sigma)
+                features = feature_fn(tokens, None)
+                scores = base_score_fn(features, sigma)
+                return scores[:, :graph.dim]
         else:
-            sampling_score_fn = base_score_fn
+            def sampling_score_fn(tokens, sigma):
+                scores = base_score_fn(tokens, sigma)
+                return scores[:, :graph.dim]
 
         x = graph.sample_limit(*batch_dims).to(device)
         timesteps = torch.linspace(1, eps, steps + 1, device=device)
@@ -170,31 +175,42 @@ def get_pc_sampler(
     return pc_sampler
 
 
-def make_block_uniform_feature_fn(graph, numeric_template: torch.Tensor | None = None):
+def make_block_uniform_feature_fn(graph, numeric_template: Optional[torch.Tensor] = None):
     if not hasattr(graph, "group_sizes"):
         return None
     group_sizes = list(graph.group_sizes)
 
-    if numeric_template is not None:
-        if numeric_template.ndim == 1:
-            numeric_template = numeric_template.unsqueeze(0)
+    if numeric_template is not None and numeric_template.ndim == 1:
+        numeric_template = numeric_template.unsqueeze(0)
 
-    def feature_fn(tokens_global: torch.Tensor) -> torch.Tensor:
+    def feature_fn(tokens_global: torch.Tensor, numeric_values: Optional[torch.Tensor] = None) -> torch.Tensor:
         local_tokens = graph.to_local(tokens_global).long()
         one_hots = [
             F.one_hot(local_tokens[..., idx], num_classes=size).float()
             for idx, size in enumerate(group_sizes)
         ]
-        cat = torch.cat(one_hots, dim=-1) if one_hots else torch.zeros(tokens_global.shape[0], 0, device=tokens_global.device)
+        if one_hots:
+            cat = torch.cat(one_hots, dim=-1)
+        else:
+            cat = torch.zeros(tokens_global.shape[0], 0, device=tokens_global.device)
 
-        if numeric_template is not None:
-            numeric = numeric_template.to(tokens_global.device)
-            if numeric.shape[0] == 1:
-                numeric = numeric.expand(tokens_global.shape[0], -1)
-            elif numeric.shape[0] != tokens_global.shape[0]:
+        numeric_component: Optional[torch.Tensor]
+        if numeric_values is not None:
+            numeric_component = numeric_values
+        elif numeric_template is not None:
+            numeric_component = numeric_template.to(tokens_global.device)
+            if numeric_component.shape[0] == 1:
+                numeric_component = numeric_component.expand(tokens_global.shape[0], -1)
+            elif numeric_component.shape[0] != tokens_global.shape[0]:
                 raise ValueError("numeric_template batch dimension mismatch")
-            return torch.cat([numeric, cat], dim=-1)
-        return cat
+        else:
+            numeric_component = None
+
+        if numeric_component is None or numeric_component.numel() == 0:
+            return cat
+        if cat.numel() == 0:
+            return numeric_component.float()
+        return torch.cat([numeric_component.float(), cat], dim=-1)
 
     return feature_fn
 
@@ -227,9 +243,22 @@ def decode_block_uniform_tokens(graph, tokens_global: torch.Tensor, encoder) -> 
     return encoder.inverse_transform(local_tokens)
 
 
-def decoded_to_dataframe(decoded, columns=None):
-    df = pd.DataFrame(decoded, columns=columns)
-    return df
+def decoded_to_dataframe(decoded, columns=None, numeric=None, numeric_columns=None):
+    frames = []
+    if decoded is not None:
+        frames.append(pd.DataFrame(decoded, columns=columns))
+    if numeric is not None:
+        if torch.is_tensor(numeric):
+            numeric_np = numeric.detach().cpu().numpy()
+        else:
+            numeric_np = numeric
+        if numeric_np.size > 0:
+            if numeric_columns is None:
+                numeric_columns = [f"num_{idx}" for idx in range(numeric_np.shape[1])]
+            frames.append(pd.DataFrame(numeric_np, columns=numeric_columns))
+    if not frames:
+        return pd.DataFrame()
+    return pd.concat(frames, axis=1)
 
 
 def sample_block_uniform(
@@ -244,25 +273,103 @@ def sample_block_uniform(
         device=None,
         feature_fn=None,
         state_proj=None,
-        numeric_context: torch.Tensor | None = None,
+        numeric_context: Optional[torch.Tensor] = None,
 ):
     if device is None:
         device = next(model.parameters()).device
+    total_input_dim = getattr(model, "input_dim", None)
+    if total_input_dim is None:
+        if numeric_context is not None:
+            total_input_dim = graph.dim + numeric_context.shape[-1]
+        else:
+            total_input_dim = graph.dim
+    numeric_dim = max(total_input_dim - graph.dim, 0)
+
     if feature_fn is None:
-        feature_fn = make_block_uniform_feature_fn(graph, numeric_template=numeric_context)
+        feature_fn = make_block_uniform_feature_fn(graph)
     if state_proj is None:
         state_proj = make_block_uniform_projector(graph)
 
-    sampler = get_pc_sampler(
-        graph=graph,
-        noise=noise,
-        batch_dims=(num_samples,),
-        predictor=predictor,
-        steps=steps,
-        denoise=denoise,
-        eps=eps,
-        device=device,
-        feature_fn=feature_fn,
-        state_proj=state_proj,
-    )
-    return sampler(model)
+    batch_dims = (num_samples,)
+
+    if numeric_dim == 0:
+        sampler = get_pc_sampler(
+            graph=graph,
+            noise=noise,
+            batch_dims=batch_dims,
+            predictor=predictor,
+            steps=steps,
+            denoise=denoise,
+            eps=eps,
+            device=device,
+            feature_fn=feature_fn,
+            state_proj=state_proj,
+        )
+        tokens = sampler(model)
+        return tokens
+
+    if predictor != "analytic":
+        raise NotImplementedError("Continuous sampling currently supports only the 'analytic' predictor.")
+
+    numeric_state: torch.Tensor
+    if numeric_context is not None:
+        numeric_state = numeric_context.to(device)
+        if numeric_state.ndim == 1:
+            numeric_state = numeric_state.unsqueeze(0)
+        if numeric_state.shape[0] == 1:
+            numeric_state = numeric_state.expand(num_samples, -1).clone()
+        elif numeric_state.shape[0] != num_samples:
+            raise ValueError("numeric_context batch dimension mismatch")
+        numeric_dim = numeric_state.shape[1]
+    else:
+        if hasattr(noise, "sigmas"):
+            init_sigma = float(noise.sigmas.max().item()) if hasattr(noise.sigmas, "max") else float(noise.sigmas[1])
+        else:
+            init_sigma = 1.0
+        numeric_state = torch.randn(num_samples, numeric_dim, device=device) * init_sigma
+
+    projector = state_proj
+    base_score_fn = mutils.get_score_fn(model, train=False, sampling=True, discrete_dim=graph.dim)
+    tokens = graph.sample_limit(*batch_dims).to(device)
+
+    timesteps = torch.linspace(1, eps, steps + 1, device=device)
+
+    for idx in range(steps):
+        t_curr = timesteps[idx]
+        t_next = timesteps[idx + 1]
+        t_batch = t_curr * torch.ones(num_samples, 1, device=device)
+        sigma_curr = noise(t_batch)[0]
+        sigma_next = noise(t_next * torch.ones(num_samples, 1, device=device))[0]
+
+        features = feature_fn(tokens, numeric_state)
+        scores = base_score_fn(features, sigma_curr)
+        discrete_scores = scores[:, :graph.dim]
+        numeric_scores = scores[:, graph.dim:]
+
+        dsigma = sigma_curr - sigma_next
+        tokens = projector(tokens)
+        probs = graph.staggered_score(discrete_scores, dsigma) * graph.transp_transition(tokens, dsigma)
+        tokens = sample_categorical(probs)
+
+        sigma_sq_curr = sigma_curr ** 2
+        sigma_sq_next = sigma_next ** 2
+        delta_sigma_sq = torch.clamp(sigma_sq_curr - sigma_sq_next, min=0.0)
+        noise_scale = torch.sqrt(delta_sigma_sq + 1e-12)
+        delta_sigma_sq = delta_sigma_sq.view(-1, 1)
+        noise_scale = noise_scale.view(-1, 1)
+        stochastic_term = noise_scale * torch.randn_like(numeric_state)
+        numeric_state = numeric_state + delta_sigma_sq * numeric_scores + stochastic_term
+
+    if denoise:
+        t_final = timesteps[-1] * torch.ones(num_samples, 1, device=device)
+        sigma_final = noise(t_final)[0]
+        features = feature_fn(tokens, numeric_state)
+        scores = base_score_fn(features, sigma_final)
+        discrete_scores = scores[:, :graph.dim]
+        numeric_scores = scores[:, graph.dim:]
+        tokens = projector(tokens)
+        probs = graph.staggered_score(discrete_scores, sigma_final) * graph.transp_transition(tokens, sigma_final)
+        tokens = sample_categorical(probs)
+        numeric_state = numeric_state + (sigma_final ** 2).view(-1, 1) * numeric_scores
+
+    return tokens, numeric_state

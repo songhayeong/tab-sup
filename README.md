@@ -15,7 +15,7 @@ Everything else (preprocessing → graph → training loop with EMA) wires itsel
 Method (toy demo)
 1. Generate discrete + numeric toy data (`make_toy_dataset.py`).
 2. Train BlockUniform diffusion on the hybrid features (`python -m start.train --config start/configs/toy.toml`).
-3. Run the sampler, then decode tokens back to original categories / numeric context (script below).
+3. Run the sampler, then decode tokens back to original categories / numeric context (script below). The sampler returns `(categorical_tokens, numeric_values)` so both parts can be saved together.
   ```bash
   python - <<'PY'
   import torch, start
@@ -38,11 +38,19 @@ Method (toy demo)
   model.eval()
 
   numeric_ctx = torch.from_numpy(dataset.X_num['train'].mean(axis=0, keepdims=True)).float()
-  tokens = sampling.sample_block_uniform(model, graph, noise, num_samples=256, steps=cfg.sampling.steps,
-                                         predictor=cfg.sampling.predictor, denoise=cfg.sampling.noise_removal,
-                                         device=torch.device('cpu'), numeric_context=numeric_ctx)
+  tokens, numeric = sampling.sample_block_uniform(
+      model,
+      graph,
+      noise,
+      num_samples=256,
+      steps=cfg.sampling.steps,
+      predictor=cfg.sampling.predictor,
+      denoise=cfg.sampling.noise_removal,
+      device=torch.device('cpu'),
+      numeric_context=numeric_ctx,
+  )
   decoded = sampling.decode_block_uniform_tokens(graph, tokens, getattr(dataset, 'cat_transform', None))
-  sampling.decoded_to_dataframe(decoded, dataset.cat_columns).to_csv(Path('start/dataset/toy/toy_samples.csv'), index=False)
+  df = sampling.decoded_to_dataframe(decoded, dataset.cat_columns, numeric=numeric, numeric_columns=[f"num_{i}" for i in range(numeric.shape[1])])
+  df.to_csv(Path('start/dataset/toy/toy_samples.csv'), index=False)
   PY
   ```
-

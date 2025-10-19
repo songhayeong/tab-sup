@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 from contextlib import nullcontext
+from typing import Optional
 
 
 def get_model_fn(model, train=False):
@@ -39,9 +40,11 @@ def get_model_fn(model, train=False):
     return model_fn
 
 
-def get_score_fn(model, train=False, sampling=False):
+def get_score_fn(model, train=False, sampling=False, discrete_dim: Optional[int] = None):
     if sampling:
         assert not train, "Must sample in eval mode"
+        if discrete_dim is None:
+            raise ValueError("discrete_dim must be provided when sampling")
     model_fn = get_model_fn(model, train=train)
 
     autocast_ctx = torch.cuda.amp.autocast if torch.cuda.is_available() else nullcontext
@@ -53,7 +56,9 @@ def get_score_fn(model, train=False, sampling=False):
 
             if sampling:
                 # when sampling return true score (not log used for training)
-                return score.exp()
+                discrete = score[:, :discrete_dim].exp() if discrete_dim > 0 else score[:, :0]
+                numeric = score[:, discrete_dim:]
+                return torch.cat([discrete, numeric], dim=-1)
 
             return score
 

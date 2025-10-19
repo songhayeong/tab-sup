@@ -433,6 +433,7 @@ class ResNet(nn.Module):
 class MLPDiffusion(nn.Module):
     def __init__(self, d_in, num_classes, is_y_cond, rtdl_params, dim_t=128):
         super().__init__()
+        self.input_dim = d_in
         self.dim_t = dim_t
         self.num_classes = num_classes
         self.is_y_cond = is_y_cond
@@ -471,6 +472,7 @@ class MLPDiffusion(nn.Module):
 class ResNetDiffusion(nn.Module):
     def __init__(self, d_in, num_classes, rtdl_params, dim_t=256):
         super().__init__()
+        self.input_dim = d_in
         self.dim_t = dim_t
         self.num_classes = num_classes
 
