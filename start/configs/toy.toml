@@ -42,7 +42,7 @@ warmup = 0
 grad_clip = 1.0
 
 [train]
-epochs = 5
+epochs = 500
 grad_accum = 1
 log_every = 10
 eval_every = 50
@@ -54,5 +54,5 @@ max_steps = 0
 
 [sampling]
 predictor = "analytic"
-steps = 50
+steps = 100
 noise_removal = true

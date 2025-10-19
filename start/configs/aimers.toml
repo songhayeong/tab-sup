@@ -51,4 +51,9 @@ checkpoint_dir = "start/checkpoints/tab_sedd"
 ema_decay = 0.999
 seed = 777
 
-max_steps = 2
+max_steps = 0
+
+[sampling]
+predictor = "analytic"
+steps = 100
+noise_removal = true
