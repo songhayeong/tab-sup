@@ -96,6 +96,12 @@ class Graph(abc.ABC):
         # return sample_categorical(F.one_hot(i, num_classes=self.dim).to(rate) + rate)
         pass
 
+    def to_global(self, tokens: torch.Tensor) -> torch.Tensor:
+        return tokens
+
+    def to_local(self, tokens: torch.Tensor) -> torch.Tensor:
+        return tokens
+
     @abc.abstractmethod
     def staggered_score(self, score, dsigma):
         """
@@ -157,6 +163,16 @@ class Uniform(Graph):
         move_indices = torch.rand(*i.shape, device=i.device) < move_chance
         i_pert = torch.where(move_indices, torch.randint_like(i, self.dim), i)
         return i_pert
+
+    def sample_rate(self, i, rate):
+        base = F.one_hot(i, num_classes=self.dim).float()
+        probs = base + rate
+        probs = torch.clamp(probs, min=0)
+        probs_sum = probs.sum(dim=-1, keepdim=True)
+        probs_sum = torch.where(probs_sum == 0, torch.ones_like(probs_sum), probs_sum)
+        probs = probs / probs_sum
+        sampled = torch.multinomial(probs.reshape(-1, self.dim), 1, replacement=True).squeeze(-1)
+        return sampled.view_as(i)
 
     def staggered_score(self, score, dsigma):
         dim = score.shape[-1]
@@ -241,6 +257,10 @@ class BlockUniform(Graph):
     def group_starts(self) -> torch.Tensor:
         return self._group_starts
 
+    @property
+    def num_groups(self) -> int:
+        return len(self._group_sizes_list)
+
     def _broadcast_buffers(self, device: torch.device) -> Tuple[torch.Tensor, ...]:
         return (
             self._group_sizes.to(device),
@@ -267,6 +287,16 @@ class BlockUniform(Graph):
 
     def transp_rate(self, i: torch.Tensor) -> torch.Tensor:
         return self.rate(i)
+
+    def to_global(self, local_tokens: torch.Tensor) -> torch.Tensor:
+        if local_tokens.numel() == 0:
+            return local_tokens
+        return local_tokens + self._group_starts.to(local_tokens.device)
+
+    def to_local(self, global_tokens: torch.Tensor) -> torch.Tensor:
+        if global_tokens.numel() == 0:
+            return global_tokens
+        return global_tokens - self._group_starts.to(global_tokens.device)
 
     def transition(self, i: torch.Tensor, sigma: torch.Tensor) -> torch.Tensor:
         device = i.device
@@ -306,24 +336,63 @@ class BlockUniform(Graph):
         sampled = torch.multinomial(flat_probs, 1, replacement=True).squeeze(-1)
         return sampled.view_as(i)
 
-    def staggered_score(self, score: torch.Tensor, dsigma: torch.Tensor) -> torch.Tensor:
-        result = torch.zeros_like(score)
-        exp_term = torch.exp(-dsigma)[..., None]
+    def sample_rate(self, i: torch.Tensor, rate: torch.Tensor) -> torch.Tensor:
+        base = F.one_hot(i, num_classes=self.dim).float()
+        probs = base + rate
+        probs = torch.clamp(probs, min=0)
+        probs_sum = probs.sum(dim=-1, keepdim=True)
+        probs_sum = torch.where(probs_sum == 0, torch.ones_like(probs_sum), probs_sum)
+        probs = probs / probs_sum
+        sampled = torch.multinomial(probs.reshape(-1, self.dim), 1, replacement=True).squeeze(-1)
+        return sampled.view_as(i)
 
-        for idxs in self._group_indices:
-            idxs = idxs.to(score.device)
-            sub_score = score[..., idxs]
-            group_size = sub_score.shape[-1]
-            if group_size == 0:
+    def reverse_rate(self, i, score):
+        base = self.transp_rate(i)
+        if score.dim() == 2:
+            score_expanded = torch.zeros_like(base)
+            start_idx = 0
+            for size in self._group_sizes_list:
+                end_idx = start_idx + size
+                score_expanded[:, :, start_idx:end_idx] = score[:, start_idx:end_idx].unsqueeze(1)
+                start_idx = end_idx
+        else:
+            score_expanded = score
+
+        normalized_rate = base * score_expanded
+        normalized_rate.scatter_(-1, i[..., None], torch.zeros_like(normalized_rate))
+        normalized_rate.scatter_(-1, i[..., None], -normalized_rate.sum(dim=-1, keepdim=True))
+        return normalized_rate
+
+    def staggered_score(self, score: torch.Tensor, dsigma: torch.Tensor) -> torch.Tensor:
+        batch = score.shape[0]
+        result = torch.zeros(batch, self.num_groups, self.dim, device=score.device, dtype=score.dtype)
+        exp_term = torch.exp(-dsigma).reshape(score.shape[0], 1)
+
+        start_idx = 0
+        for group_idx, size in enumerate(self._group_sizes_list):
+            end_idx = start_idx + size
+            sub_score = score[:, start_idx:end_idx]
+            if size == 0:
                 continue
             sub_sum = sub_score.sum(dim=-1, keepdim=True)
-            factor = (exp_term - 1) / (exp_term * group_size)
-            result[..., idxs] = factor * sub_sum + sub_score / exp_term
+            factor = (exp_term - 1) / (exp_term * size)
+            result[:, group_idx, start_idx:end_idx] = factor * sub_sum + sub_score / exp_term
+            start_idx = end_idx
 
         return result
 
     def sample_limit(self, *batch_dims):
-        return torch.randint(0, self.dim, batch_dims, device=self._group_sizes.device)
+        if not batch_dims:
+            batch_dims = (1,)
+        device = self._group_sizes.device
+        local = torch.stack(
+            [
+                torch.randint(0, size, batch_dims, device=device)
+                for size in self._group_sizes_list
+            ],
+            dim=-1,
+        )
+        return self.to_global(local)
 
     def score_entropy(self, score, sigma, x, x0):
         device = score.device
@@ -389,6 +458,16 @@ class Absorbing(Graph):
         move_indices = torch.rand(*i.shape, device=i.device) < move_chance
         i_pert = torch.where(move_indices, self.dim - 1, i)
         return i_pert
+
+    def sample_rate(self, i, rate):
+        base = F.one_hot(i, num_classes=self.dim).float()
+        probs = base + rate
+        probs = torch.clamp(probs, min=0)
+        probs_sum = probs.sum(dim=-1, keepdim=True)
+        probs_sum = torch.where(probs_sum == 0, torch.ones_like(probs_sum), probs_sum)
+        probs = probs / probs_sum
+        sampled = torch.multinomial(probs.reshape(-1, self.dim), 1, replacement=True).squeeze(-1)
+        return sampled.view_as(i)
 
     def staggered_score(self, score, dsigma):
         score = score.clone()  # yeah yeah whatever we should probably do this

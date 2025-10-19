@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from contextlib import nullcontext
 
 
 def get_model_fn(model, train=False):
@@ -43,7 +44,9 @@ def get_score_fn(model, train=False, sampling=False):
         assert not train, "Must sample in eval mode"
     model_fn = get_model_fn(model, train=train)
 
-    with torch.cuda.amp.autocast(dtype=torch.bfloat16):
+    autocast_ctx = torch.cuda.amp.autocast if torch.cuda.is_available() else nullcontext
+
+    with autocast_ctx(dtype=torch.bfloat16) if torch.cuda.is_available() else nullcontext():
         def score_fn(x, sigma):
             sigma = sigma.reshape(-1)
             score = model_fn(x, sigma)

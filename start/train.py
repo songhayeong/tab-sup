@@ -79,6 +79,13 @@ class TrainLoopConfig:
 
 
 @dataclass
+class SamplingConfig:
+    predictor: str = "analytic"
+    steps: int = 200
+    noise_removal: bool = True
+
+
+@dataclass
 class Config:
     dataset: DatasetConfig
     transformations: Transformations
@@ -87,6 +94,7 @@ class Config:
     model: ModelConfig
     optim: OptimConfig
     train: TrainLoopConfig
+    sampling: SamplingConfig = field(default_factory=SamplingConfig)
 
 
 def set_seed(seed: int) -> None:
@@ -224,7 +232,7 @@ def train(config: Config) -> None:
     )
 
     train_loader, val_loader = _get_dataloaders(dataset, config.dataset)
-    input_dim = graph.dim
+    input_dim = graph.dim + dataset.n_num_features
     model = build_model(config.model, dataset, input_dim).to(device)
 
     noise = get_noise(config)

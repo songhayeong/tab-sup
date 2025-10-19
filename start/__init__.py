@@ -14,6 +14,14 @@ from .data import (
 from .graph_lib import get_graph, Graph, Uniform, Absorbing
 from .pipeline import prepare_dataset_and_graph
 from .train import train, Config as TrainConfig
+from .sampling import (
+    get_pc_sampler,
+    make_block_uniform_feature_fn,
+    make_block_uniform_projector,
+    sample_block_uniform,
+    decode_block_uniform_tokens,
+    decoded_to_dataframe,
+)
 
 __all__ = [
     "Dataset",
@@ -29,4 +37,10 @@ __all__ = [
     "prepare_dataset_and_graph",
     "train",
     "TrainConfig",
+    "get_pc_sampler",
+    "make_block_uniform_feature_fn",
+    "make_block_uniform_projector",
+    "sample_block_uniform",
+    "decode_block_uniform_tokens",
+    "decoded_to_dataframe",
 ]

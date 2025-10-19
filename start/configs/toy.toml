@@ -1,0 +1,58 @@
+[dataset]
+path = "start/dataset/toy"
+cache = false
+batch_size = 64
+shuffle = true
+num_workers = 0
+
+drop_last = false
+
+[transformations]
+seed = 0
+cat_encoding = "__none__"
+cat_nan_policy = "__none__"
+num_nan_policy = "__none__"
+y_policy = "default"
+
+[graph]
+type = "block_uniform"
+
+[noise]
+type = "geometric"
+sigma_min = 1e-3
+sigma_max = 1.0
+
+[model]
+type = "mlp"
+is_y_cond = false
+dim_t = 64
+
+[model.rtdl_params]
+d_layers = [128, 128]
+dropout = 0.1
+
+[optim]
+optimizer = "AdamW"
+lr = 1e-3
+beta1 = 0.9
+beta2 = 0.999
+eps = 1e-8
+weight_decay = 1e-4
+warmup = 0
+grad_clip = 1.0
+
+[train]
+epochs = 5
+grad_accum = 1
+log_every = 10
+eval_every = 50
+checkpoint_every = 0
+checkpoint_dir = "start/checkpoints/toy"
+ema_decay = 0.999
+seed = 123
+max_steps = 0
+
+[sampling]
+predictor = "analytic"
+steps = 50
+noise_removal = true

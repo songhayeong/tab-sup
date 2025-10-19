@@ -101,6 +101,7 @@ class Dataset:
     task_type: TaskType
     n_classes: Optional[int]
     cat_group_sizes: Optional[List[int]] = None
+    cat_columns: Optional[List[str]] = None
 
     @classmethod
     def from_dir(cls, dir_: Union[Path, str]) -> 'Dataset':
@@ -118,10 +119,12 @@ class Dataset:
         else:
             info = None
         cat_group_sizes = None
+        cat_columns = None
         if info is not None:
             cat_group_sizes = info.get('cat_group_sizes')
             if cat_group_sizes is not None:
                 cat_group_sizes = list(cat_group_sizes)
+            cat_columns = info.get('categorical_columns')
         return Dataset(
             load('X_num') if dir_.joinpath('X_num_train.npy').exists() else None,
             load('X_cat') if dir_.joinpath('X_cat_train.npy').exists() else None,
@@ -130,6 +133,7 @@ class Dataset:
             TaskType(info['task_type']),
             info.get('n_classes'),
             cat_group_sizes,
+            cat_columns,
         )
 
     @property
@@ -443,7 +447,15 @@ def transform_dataset(
 
     y, y_info = build_target(dataset.y, transformations.y_policy, dataset.task_type)
 
-    dataset = replace(dataset, X_num=X_num, X_cat=X_cat, y=y, y_info=y_info, cat_group_sizes=group_sizes)
+    dataset = replace(
+        dataset,
+        X_num=X_num,
+        X_cat=X_cat,
+        y=y,
+        y_info=y_info,
+        cat_group_sizes=group_sizes,
+        cat_columns=dataset.cat_columns,
+    )
     dataset.num_transform = num_transform
     dataset.cat_transform = cat_transform
 
