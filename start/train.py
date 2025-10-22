@@ -156,6 +156,7 @@ def build_model(cfg: ModelConfig, dataset: Dataset, input_dim: int) -> torch.nn.
             rtdl_params=rtdl_params,
             dim_t=cfg.dim_t,
         )
+    ### add DiT Block style
     else:
         raise ValueError(f"Unknown model type: {cfg.type}")
 
