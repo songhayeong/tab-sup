@@ -3,14 +3,30 @@
 - Goal: mix SEDD’s discrete score-entropy scheme with Tab-DDPM’s tabular diffusion.  
 - Key idea: build a block-uniform transition matrix for one-hot features, train an MLP/ResNet diffusion model on top.
 
-### Usage Snapshot
+### Quickstart
 
-```bash
-python -m start.train --config configs/example.toml
-```
+1. **Download raw datasets**  
+   ```bash
+   python start/dataset/download_dataset.py
+   ```
+   This pulls selected UCI tables (e.g., Online Shoppers) into `data/<name>`.
 
-Config needs dataset paths, graph type (`block_uniform`), noise schedule, and model/optim params.  
-Everything else (preprocessing → graph → training loop with EMA) wires itself.
+2. **Prepare tabular tensors**  
+   ```bash
+   python start/prepare_shoppers_dataset.py
+   ```
+   - Outputs live under `start/dataset/shoppers/` (`X_num_*.npy`, `X_cat_*.npy`, `y_*.npy`, `info.json`).
+   - Numeric columns get mean-imputed, quantile-normalized (Gaussian output).  
+   - Categorical columns map missing values to a dedicated `__nan__` token.
+
+   Repeat with `start/prepare_aimers_dataset.py` for the AIMERS benchmark.
+
+3. **Train diffusion model with tqdm progress**  
+   ```bash
+   python -m start.train --config start/configs/shoppers.toml
+   ```
+   - Per-epoch tqdm bar tracks mini-batch progress; logs still emit periodic loss/val metrics.
+   - Config defaults: mean imputation, `new_category` categorical policy, `quantile` normalization, EMA, checkpoints.
 
 Method (toy demo)
 1. Generate discrete + numeric toy data (`make_toy_dataset.py`).

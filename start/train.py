@@ -17,6 +17,10 @@ from .model import modules as model_modules
 from .noise_lib import get_noise
 from .pipeline import prepare_dataset_and_graph
 
+try:
+    from tqdm.auto import tqdm
+except ImportError:  # pragma: no cover - optional dependency
+    tqdm = None
 
 @dataclass
 class DatasetConfig:
@@ -274,7 +278,19 @@ def train(config: Config) -> None:
         if config.train.max_steps and state["step"] >= config.train.max_steps:
             break
 
-        for batch_idx, batch in enumerate(_iter_batches(train_loader, device)):
+        batch_enumerator = enumerate(_iter_batches(train_loader, device))
+        use_tqdm = tqdm is not None
+        if use_tqdm:
+            progress_bar = tqdm(
+                batch_enumerator,
+                total=steps_per_epoch,
+                desc=f"Epoch {epoch}",
+                leave=False,
+            )
+        else:
+            progress_bar = batch_enumerator
+
+        for batch_idx, batch in progress_bar:
             if config.train.max_steps and state["step"] >= config.train.max_steps:
                 break
 
@@ -282,6 +298,9 @@ def train(config: Config) -> None:
             loss = train_step_fn(state, batch)
 
             if state["step"] != prev_step:
+                if use_tqdm:
+                    progress_bar.set_postfix(loss=f"{loss.item():.4f}")
+
                 if state["step"] % config.train.log_every == 0:
                     print(f"[epoch {epoch} | step {state['step']}] loss: {loss.item():.4f}")
 
@@ -304,6 +323,9 @@ def train(config: Config) -> None:
 
             if (batch_idx + 1) >= steps_per_epoch:
                 break
+
+        if use_tqdm:
+            progress_bar.close()
 
         if val_loader is not None and eval_step_fn is not None:
             val_loss = evaluate(val_loader, eval_step_fn, state, device)

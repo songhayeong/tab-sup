@@ -32,7 +32,7 @@ import torch
 import os
 from category_encoders import LeaveOneOutEncoder
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, QuantileTransformer, MinMaxScaler
 from scipy.spatial.distance import cdist
 from . import utils
 
@@ -45,7 +45,7 @@ CAT_MISSING_VALUE = '__nan__'
 CAT_RARE_VALUE = '__rare__'
 Normalization = Literal['standard', 'quantile', 'minmax']
 NumNanPolicy = Literal['drop-rows', 'mean']
-CatNanPolicy = Literal['most_frequent']
+CatNanPolicy = Literal['most_frequent', 'new_category']
 CatEncoding = Literal['one-hot', 'counter']
 YPolicy = Literal['default']
 
@@ -217,7 +217,6 @@ def num_process_nans(dataset: Dataset, policy: Optional[NumNanPolicy]) -> Datase
     assert dataset.X_num is not None
     nan_masks = {k: np.isnan(v) for k, v in dataset.X_num.items()}
     if not any(x.any() for x in nan_masks.values()):  # type: ignore[code]
-        assert policy is None
         return dataset
 
     assert policy is not None
@@ -242,33 +241,62 @@ def num_process_nans(dataset: Dataset, policy: Optional[NumNanPolicy]) -> Datase
             v[num_nan_indices] = np.take(new_values, num_nan_indices[1])
         dataset = replace(dataset, X_num=X_num)
     else:
-        assert utils.raise_unknown('policy', policy)
+        utils.raise_unknown('policy', policy)
     return dataset
 
 
-def normalize():
-    """
-    정규화 작업은 현재 고려하지는 않겠음.
-    """
-    pass
+def num_normalize(
+        X: ArrayDict,
+        normalization: Optional[Normalization],
+        seed: Optional[int],
+) -> Tuple[ArrayDict, Optional[Any]]:
+    if normalization is None:
+        return {k: v.astype(np.float32, copy=False) for k, v in X.items()}, None
+
+    if normalization == 'standard':
+        transformer = StandardScaler()
+    elif normalization == 'quantile':
+        n_quantiles = min(1000, X['train'].shape[0])
+        transformer = QuantileTransformer(
+            n_quantiles=n_quantiles,
+            output_distribution='normal',
+            random_state=seed,
+        )
+    elif normalization == 'minmax':
+        transformer = MinMaxScaler()
+    else:
+        utils.raise_unknown('normalization', normalization)
+    transformer.fit(X['train'])
+    transformed = {k: transformer.transform(v) for k, v in X.items()}
+    transformed = {k: v.astype(np.float32, copy=False) for k, v in transformed.items()}
+    return transformed, transformer
 
 
 def cat_process_nans(X: ArrayDict, policy: Optional[CatNanPolicy]) -> ArrayDict:
     assert X is not None
-    nan_masks = {k: v == CAT_MISSING_VALUE for k, v in X.items()}
-    if any(x.any() for x in nan_masks.values()):  # type: ignore[code]
-        if policy is None:
-            X_new = X
-        elif policy == 'most_frequent':
-            imputer = SimpleImputer(missing_values=CAT_MISSING_VALUE, strategy=policy)  # type : ignore[code]
-            imputer.fit(X['train'])
-            X_new = {k: cast(np.ndarray, imputer.transform(v)) for k, v in X.items()}
-        else:
-            utils.raise_unknown('categorical NaN policy', policy)
-    else:
-        assert policy is None
-        X_new = X
-    return X_new
+    normalized = {}
+    missing_present = False
+    for split, values in X.items():
+        arr = values.astype(object, copy=True)
+        mask = pd.isna(arr) | (arr == CAT_MISSING_VALUE)
+        if mask.any():
+            missing_present = True
+            arr[mask] = CAT_MISSING_VALUE
+        normalized[split] = arr
+
+    if not missing_present:
+        return X if policy is None else normalized
+
+    if policy is None:
+        return normalized
+    if policy == 'most_frequent':
+        imputer = SimpleImputer(missing_values=CAT_MISSING_VALUE, strategy=policy)  # type: ignore[code]
+        imputer.fit(normalized['train'])
+        return {k: cast(np.ndarray, imputer.transform(v)) for k, v in normalized.items()}
+    if policy == 'new_category':
+        return normalized
+    utils.raise_unknown('categorical NaN policy', policy)
+    return normalized
 
 
 def cat_drop_rare(X: ArrayDict, min_frequency: float) -> ArrayDict:
@@ -375,8 +403,8 @@ def build_target(
 class Transformations:
     seed: int = 0
     normalization: Optional[Normalization] = None
-    num_nan_policy: Optional[NumNanPolicy] = None
-    cat_nan_policy: Optional[CatNanPolicy] = None
+    num_nan_policy: Optional[NumNanPolicy] = 'mean'
+    cat_nan_policy: Optional[CatNanPolicy] = 'new_category'
     cat_min_frequency: Optional[float] = None
     cat_encoding: Optional[CatEncoding] = None
     y_policy: Optional[YPolicy] = 'default'
@@ -444,6 +472,13 @@ def transform_dataset(
             X_cat = None
     if group_sizes is None and dataset.X_cat is not None:
         group_sizes = dataset.get_category_size('train')
+
+    if X_num is not None:
+        X_num, num_transform = num_normalize(
+            X_num,
+            transformations.normalization,
+            transformations.seed,
+        )
 
     y, y_info = build_target(dataset.y, transformations.y_policy, dataset.task_type)
 

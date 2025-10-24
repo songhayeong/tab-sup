@@ -10,8 +10,8 @@ drop_last = false
 [transformations]
 seed = 0
 cat_encoding = "__none__"
-cat_nan_policy = "__none__"
-num_nan_policy = "__none__"
+cat_nan_policy = "new_category"
+num_nan_policy = "mean"
 y_policy = "default"
 
 [graph]

@@ -9,8 +9,9 @@ drop_last = false
 [transformations]
 seed = 0
 cat_encoding = "__none__"
-cat_nan_policy = "__none__"
-num_nan_policy = "__none__"
+cat_nan_policy = "new_category"
+num_nan_policy = "mean"
+normalization = "quantile"
 y_policy = "default"
 
 [graph]
@@ -41,12 +42,12 @@ warmup = 500
 grad_clip = 1.0
 
 [train]
-epochs = 50
+epochs = 100
 grad_accum = 2
 log_every = 50
 eval_every = 500
 checkpoint_every = 1000
-checkpoint_dir = "start/checkpoints/tab_sedd"
+checkpoint_dir = "start/checkpoints/shoppers"
 ema_decay = 0.999
 seed = 777
 max_steps = 0
