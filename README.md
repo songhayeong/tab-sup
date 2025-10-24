@@ -5,13 +5,18 @@
 
 ### Quickstart
 
-1. **Download raw datasets**  
+1. **Install deps**  
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Download raw datasets**  
    ```bash
    python start/dataset/download_dataset.py
    ```
    This pulls selected UCI tables (e.g., Online Shoppers) into `data/<name>`.
 
-2. **Prepare tabular tensors**  
+3. **Prepare tabular tensors**  
    ```bash
    python start/prepare_shoppers_dataset.py
    ```
@@ -21,7 +26,7 @@
 
    Repeat with `start/prepare_aimers_dataset.py` for the AIMERS benchmark.
 
-3. **Train diffusion model with tqdm progress**  
+4. **Train diffusion model with tqdm progress**  
    ```bash
    python -m start.train --config start/configs/shoppers.toml
    ```
