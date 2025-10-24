@@ -1,0 +1,135 @@
+import argparse
+from pathlib import Path
+
+import torch
+
+from . import utils
+from .ema import ExponentialMovingAverage
+from .noise_lib import get_noise
+from .pipeline import prepare_dataset_and_graph
+from .sampling import (
+    decode_block_uniform_tokens,
+    decoded_to_dataframe,
+    sample_block_uniform,
+)
+from .train import Config, build_model, GenerationConfig
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate synthetic samples from a trained Tab-SEDD checkpoint."
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        required=True,
+        help="Path to the training config TOML file.",
+    )
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        required=False,
+        help="Checkpoint file to load (e.g. epoch_0074.pt).",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Where to save the generated CSV (default: samples/generated.csv).",
+    )
+    parser.add_argument(
+        "--num-samples",
+        type=int,
+        default=None,
+        help="Number of synthetic rows to generate (default: config or 512).",
+    )
+    parser.add_argument(
+        "--device",
+        type=str,
+        default=None,
+        help="Override device string (default: auto cuda/cpu detection).",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+
+    config = utils.from_dict(Config, utils.load_config(args.config))
+    device_str = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(device_str)
+
+    generation_cfg: GenerationConfig = config.generation or GenerationConfig()
+    checkpoint_path = args.checkpoint or (
+        Path(generation_cfg.checkpoint) if generation_cfg.checkpoint else None
+    )
+    if checkpoint_path is None:
+        raise ValueError("No checkpoint specified. Provide --checkpoint or set generation.checkpoint in the config.")
+    checkpoint_path = Path(checkpoint_path)
+
+    num_samples = args.num_samples if args.num_samples is not None else generation_cfg.num_samples
+    if num_samples is None:
+        num_samples = 512
+    output_path = args.output or (Path(generation_cfg.output) if generation_cfg.output else Path("samples/generated.csv"))
+    output_path = Path(output_path)
+
+    dataset, graph = prepare_dataset_and_graph(
+        config,
+        config.dataset.path,
+        config.transformations,
+        device,
+        cache=config.dataset.cache,
+    )
+
+    input_dim = graph.dim + dataset.n_num_features
+    model = build_model(config.model, dataset, input_dim).to(device)
+    noise = get_noise(config)
+
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    model.load_state_dict(checkpoint["model"])
+
+    ema = ExponentialMovingAverage(model.parameters(), config.train.ema_decay)
+    ema.load_state_dict(checkpoint["ema"])
+    ema.copy_to(model.parameters())
+    model.eval()
+
+    samples = sample_block_uniform(
+        model=model,
+        graph=graph,
+        noise=noise,
+        num_samples=num_samples,
+        steps=config.sampling.steps,
+        predictor=config.sampling.predictor,
+        denoise=config.sampling.noise_removal,
+        eps=1e-5,
+        device=device,
+    )
+
+    if isinstance(samples, tuple):
+        tokens, numeric = samples
+    else:
+        tokens, numeric = samples, None
+
+    categorical = decode_block_uniform_tokens(graph, tokens, dataset.cat_transform)
+    numeric_np = None
+    if numeric is not None:
+        numeric_np = numeric.detach().cpu().numpy()
+        if dataset.num_transform is not None:
+            numeric_np = dataset.num_transform.inverse_transform(numeric_np)
+
+    info_path = Path(config.dataset.path) / "info.json"
+    info = utils.load_json(info_path) if info_path.exists() else {}
+    df = decoded_to_dataframe(
+        categorical,
+        columns=info.get("categorical_columns"),
+        numeric=numeric_np,
+        numeric_columns=info.get("numeric_columns"),
+    )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(output_path, index=False)
+    print(f"Saved {len(df)} samples to {output_path}")
+
+
+if __name__ == "__main__":
+    main()

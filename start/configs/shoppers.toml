@@ -56,3 +56,8 @@ max_steps = 0
 predictor = "analytic"
 steps = 100
 noise_removal = true
+
+[generation]
+checkpoint = "start/checkpoints/shoppers/epoch_0074.pt"
+num_samples = 512
+output = "samples/shoppers_samples.csv"

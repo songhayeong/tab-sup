@@ -90,6 +90,13 @@ class SamplingConfig:
 
 
 @dataclass
+class GenerationConfig:
+    checkpoint: Optional[str] = None
+    num_samples: int = 512
+    output: Optional[str] = None
+
+
+@dataclass
 class Config:
     dataset: DatasetConfig
     transformations: Transformations
@@ -99,6 +106,7 @@ class Config:
     optim: OptimConfig
     train: TrainLoopConfig
     sampling: SamplingConfig = field(default_factory=SamplingConfig)
+    generation: Optional[GenerationConfig] = None
 
 
 def set_seed(seed: int) -> None:
@@ -189,7 +197,7 @@ def load_checkpoint(
     state: Dict[str, Any],
     device: torch.device,
 ) -> Tuple[int, int]:
-    checkpoint = torch.load(path, map_location=device)
+    checkpoint = torch.load(path, map_location=device, weights_only=False)
     state["model"].load_state_dict(checkpoint["model"])
     state["optimizer"].load_state_dict(checkpoint["optimizer"])
     state["scaler"].load_state_dict(checkpoint["scaler"])

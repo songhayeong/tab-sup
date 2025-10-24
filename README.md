@@ -33,6 +33,14 @@
    - Per-epoch tqdm bar tracks mini-batch progress; logs still emit periodic loss/val metrics.
    - Config defaults: mean imputation, `new_category` categorical policy, `quantile` normalization, EMA, checkpoints.
 
+5. **Generate synthetic samples from a checkpoint**  
+   The config ships a `[generation]` block with default values, so the minimal command is:
+   ```bash
+   python -m start.generate_samples --config start/configs/shoppers.toml
+   ```
+   Override at the CLI when needed (`--checkpoint`, `--num-samples`, `--output`).  
+   Generated CSVs reuse the preprocessing metadata to decode categorical and numeric columns properly.
+
 Method (toy demo)
 1. Generate discrete + numeric toy data (`make_toy_dataset.py`).
 2. Train BlockUniform diffusion on the hybrid features (`python -m start.train --config start/configs/toy.toml`).
