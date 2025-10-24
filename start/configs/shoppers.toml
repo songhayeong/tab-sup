@@ -1,0 +1,57 @@
+[dataset]
+path = "start/dataset/shoppers"
+cache = true
+batch_size = 256
+shuffle = true
+num_workers = 0
+drop_last = false
+
+[transformations]
+seed = 0
+cat_encoding = "__none__"
+cat_nan_policy = "__none__"
+num_nan_policy = "__none__"
+y_policy = "default"
+
+[graph]
+type = "block_uniform"
+
+[noise]
+type = "geometric"
+sigma_min = 1e-3
+sigma_max = 1.0
+
+[model]
+type = "mlp"
+is_y_cond = false
+dim_t = 128
+
+[model.rtdl_params]
+d_layers = [512, 512, 512]
+dropout = 0.1
+
+[optim]
+optimizer = "AdamW"
+lr = 2e-4
+beta1 = 0.9
+beta2 = 0.999
+eps = 1e-8
+weight_decay = 1e-5
+warmup = 500
+grad_clip = 1.0
+
+[train]
+epochs = 50
+grad_accum = 2
+log_every = 50
+eval_every = 500
+checkpoint_every = 1000
+checkpoint_dir = "start/checkpoints/tab_sedd"
+ema_decay = 0.999
+seed = 777
+max_steps = 0
+
+[sampling]
+predictor = "analytic"
+steps = 100
+noise_removal = true

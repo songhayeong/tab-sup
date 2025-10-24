@@ -1,0 +1,43 @@
+{
+  "task_type": "binclass",
+  "n_classes": 2,
+  "n_num_features": 10,
+  "n_cat_features": 7,
+  "train_size": 9864,
+  "val_size": 1233,
+  "test_size": 1233,
+  "cat_group_sizes": [
+    10,
+    8,
+    13,
+    9,
+    20,
+    3,
+    2
+  ],
+  "categorical_columns": [
+    "Month",
+    "OperatingSystems",
+    "Browser",
+    "Region",
+    "TrafficType",
+    "VisitorType",
+    "Weekend"
+  ],
+  "numeric_columns": [
+    "Administrative",
+    "Administrative_Duration",
+    "Informational",
+    "Informational_Duration",
+    "ProductRelated",
+    "ProductRelated_Duration",
+    "BounceRates",
+    "ExitRates",
+    "PageValues",
+    "SpecialDay"
+  ],
+  "target": "Revenue",
+  "random_state": 777,
+  "val_ratio": 0.1,
+  "test_ratio": 0.1
+}

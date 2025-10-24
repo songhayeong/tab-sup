@@ -1,0 +1,34 @@
+{
+  "task_type": "binclass",
+  "n_classes": 2,
+  "n_num_features": 5,
+  "n_cat_features": 5,
+  "train_size": 800,
+  "val_size": 100,
+  "test_size": 100,
+  "cat_group_sizes": [
+    3,
+    2,
+    4,
+    2,
+    3
+  ],
+  "categorical_columns": [
+    "cat0",
+    "cat1",
+    "cat2",
+    "cat3",
+    "cat4"
+  ],
+  "numeric_columns": [
+    "num0",
+    "num1",
+    "num2",
+    "num3",
+    "num4"
+  ],
+  "target": "target",
+  "random_state": 123,
+  "val_ratio": 0.1,
+  "test_ratio": 0.1
+}
