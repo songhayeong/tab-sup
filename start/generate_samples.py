@@ -29,7 +29,7 @@ def parse_args() -> argparse.Namespace:
         "--checkpoint",
         type=Path,
         required=False,
-        help="Checkpoint file to load (e.g. epoch_0074.pt).",
+        help="Checkpoint file to load (e.g. ).",
     )
     parser.add_argument(
         "--output",

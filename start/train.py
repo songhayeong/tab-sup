@@ -9,13 +9,29 @@ from typing import Any, Dict, List, Optional, Tuple
 import torch
 from torch.utils.data import DataLoader
 
-from . import utils
-from .data import Dataset, Transformations, prepare_torch_dataloader
-from .ema import ExponentialMovingAverage
-from .losses import get_optimizer, get_step_fn, optimization_manager
-from .model import modules as model_modules
-from .noise_lib import get_noise
-from .pipeline import prepare_dataset_and_graph
+if __package__ is None or __package__ == "":
+    # Allow running as `python start/train.py` by adding project root to sys.path
+    import sys
+    from pathlib import Path as _Path
+
+    _ROOT = _Path(__file__).resolve().parent.parent
+    if str(_ROOT) not in sys.path:
+        sys.path.insert(0, str(_ROOT))
+    from start import utils  # type: ignore
+    from start.data import Dataset, Transformations, prepare_torch_dataloader  # type: ignore
+    from start.ema import ExponentialMovingAverage  # type: ignore
+    from start.losses import get_optimizer, get_step_fn, optimization_manager  # type: ignore
+    from start.model import modules as model_modules  # type: ignore
+    from start.noise_lib import get_noise  # type: ignore
+    from start.pipeline import prepare_dataset_and_graph  # type: ignore
+else:
+    from . import utils
+    from .data import Dataset, Transformations, prepare_torch_dataloader
+    from .ema import ExponentialMovingAverage
+    from .losses import get_optimizer, get_step_fn, optimization_manager
+    from .model import modules as model_modules
+    from .noise_lib import get_noise
+    from .pipeline import prepare_dataset_and_graph
 
 try:
     from tqdm.auto import tqdm
@@ -280,6 +296,7 @@ def train(config: Config) -> None:
         eval_step_fn = get_step_fn(noise, graph, train=False, optimize_fn=None, accum=1)
 
     best_val = math.inf
+    best_epoch = None
     steps_per_epoch = math.ceil(len(dataset.y["train"]) / config.dataset.batch_size)
 
     for epoch in range(start_epoch, config.train.epochs):
@@ -304,13 +321,24 @@ def train(config: Config) -> None:
 
             prev_step = state["step"]
             loss = train_step_fn(state, batch)
+            if graph.dim + dataset.n_num_features > 0:
+                normalized_loss = loss / (graph.dim + dataset.n_num_features)
+            else:
+                normalized_loss = loss
 
             if state["step"] != prev_step:
                 if use_tqdm:
-                    progress_bar.set_postfix(loss=f"{loss.item():.4f}")
+                    progress_bar.set_postfix(
+                        loss=f"{loss.item():.4f}",
+                        norm_loss=f"{normalized_loss.item():.4f}",
+                    )
 
                 if state["step"] % config.train.log_every == 0:
-                    print(f"[epoch {epoch} | step {state['step']}] loss: {loss.item():.4f}")
+                    print(
+                        f"[epoch {epoch} | step {state['step']}] "
+                        f"loss: {loss.item():.4f} | "
+                        f"normalized: {normalized_loss.item():.4f}"
+                    )
 
                 if (
                     eval_step_fn is not None
@@ -319,7 +347,9 @@ def train(config: Config) -> None:
                 ):
                     val_loss = evaluate(val_loader, eval_step_fn, state, device)
                     print(f"Validation at step {state['step']}: loss {val_loss:.4f}")
-                    best_val = min(best_val, val_loss)
+                    if val_loss < best_val:
+                        best_val = val_loss
+                        best_epoch = epoch
 
                 if (
                     config.train.checkpoint_every > 0
@@ -338,7 +368,9 @@ def train(config: Config) -> None:
         if val_loader is not None and eval_step_fn is not None:
             val_loss = evaluate(val_loader, eval_step_fn, state, device)
             print(f"[epoch {epoch}] Validation loss: {val_loss:.4f}")
-            best_val = min(best_val, val_loss)
+            if val_loss < best_val:
+                best_val = val_loss
+                best_epoch = epoch
 
         if config.train.checkpoint_dir:
             ckpt_path = Path(config.train.checkpoint_dir) / f"epoch_{epoch:04d}.pt"
@@ -346,7 +378,10 @@ def train(config: Config) -> None:
 
     print("Training finished.")
     if val_loader is not None:
-        print(f"Best validation loss: {best_val:.4f}")
+        if best_epoch is not None:
+            print(f"Best validation loss: {best_val:.4f} at epoch {best_epoch}")
+        else:
+            print(f"Best validation loss: {best_val:.4f}")
 
 
 def parse_args() -> argparse.Namespace:
