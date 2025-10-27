@@ -39,20 +39,34 @@ def get_loss_fn(noise, graph, train, sampling_eps=1e-3, lv=False):
                 raise NotImplementedError("Yeah I gotta do this later")
             else:
                 t = (1 - sampling_eps) * torch.rand(batch_size, device=device) + sampling_eps
-        sigma, dsigma = noise(t)
-
-        tokens_global = graph.to_global(tokens)
-        if perturbed_batch is None:
-            perturbed_global = graph.sample_transition(tokens_global, sigma)
+        noise_out = noise(t)
+        if hasattr(noise, "numeric_schedule"):
+            sigma_cat, dsigma_cat = noise_out
+            sigma_num, dsigma_num = noise.numeric_schedule(t)
         else:
-            perturbed_global = perturbed_batch
+            sigma_cat, dsigma_cat = noise_out
+            sigma_num, dsigma_num = sigma_cat, dsigma_cat
 
-        perturbed_tokens_local = graph.to_local(perturbed_global)
-        cat_features = tokens_to_features(perturbed_tokens_local)
+        loss_total = torch.zeros(batch_size, device=device, dtype=sigma_num.dtype)
+
+        cat_features = torch.empty(batch_size, 0, device=device, dtype=sigma_cat.dtype)
+        if graph.dim > 0:
+            tokens_global = graph.to_global(tokens)
+            if perturbed_batch is None:
+                perturbed_global = graph.sample_transition(tokens_global, sigma_cat)
+            else:
+                perturbed_global = perturbed_batch
+
+            perturbed_tokens_local = graph.to_local(perturbed_global)
+            cat_features = tokens_to_features(perturbed_tokens_local)
+        else:
+            tokens_global = tokens
+            perturbed_global = perturbed_batch if perturbed_batch is not None else tokens
+
         perturbed_numeric = None
         if has_numeric:
             numeric = numeric.float()
-            sigma_expanded = sigma.view(-1, 1)
+            sigma_expanded = sigma_num.view(-1, 1) if sigma_num.ndim == 1 else sigma_num
             noise_eps = torch.randn_like(numeric)
             perturbed_numeric = numeric + sigma_expanded * noise_eps
             features = perturbed_numeric if cat_features.numel() == 0 else torch.cat(
@@ -62,18 +76,21 @@ def get_loss_fn(noise, graph, train, sampling_eps=1e-3, lv=False):
             features = cat_features
 
         log_score_fn = mutils.get_score_fn(model, train=train, sampling=False)
-        model_out = log_score_fn(features, sigma)
-        discrete_out = model_out[:, :graph.dim]
-        loss = graph.score_entropy(discrete_out, sigma, perturbed_global, tokens_global)
+        model_out = log_score_fn(features, sigma_cat if cat_features.numel() else sigma_num)
+
+        if graph.dim > 0:
+            discrete_out = model_out[:, :graph.dim]
+            cat_loss = graph.score_entropy(discrete_out, sigma_cat, perturbed_global, tokens_global)
+            loss_total = loss_total + dsigma_cat.view(-1) * cat_loss
+
         if has_numeric:
-            numeric_out = model_out[:, graph.dim:]
-            sigma_sq = sigma.view(-1, 1) ** 2
+            numeric_out = model_out[:, graph.dim:] if graph.dim > 0 else model_out
+            sigma_sq = (sigma_num.view(-1, 1) if sigma_num.ndim == 1 else sigma_num) ** 2
             target_score = -(perturbed_numeric - numeric) / (sigma_sq + 1e-12)
             numeric_loss = 0.5 * torch.sum((numeric_out - target_score) ** 2, dim=-1)
-            loss = loss + numeric_loss
-        loss = dsigma * loss
+            loss_total = loss_total + dsigma_num.view(-1) * numeric_loss
 
-        return loss
+        return loss_total
 
     return loss_fn
 

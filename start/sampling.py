@@ -338,38 +338,46 @@ def sample_block_uniform(
         t_curr = timesteps[idx]
         t_next = timesteps[idx + 1]
         t_batch = t_curr * torch.ones(num_samples, 1, device=device)
-        sigma_curr = noise(t_batch)[0]
-        sigma_next = noise(t_next * torch.ones(num_samples, 1, device=device))[0]
+        sigma_cat_curr = noise(t_batch)[0]
+        sigma_cat_next = noise(t_next * torch.ones(num_samples, 1, device=device))[0]
+        if hasattr(noise, "numeric_schedule"):
+            sigma_num_curr, _ = noise.numeric_schedule(t_batch)
+            sigma_num_next, _ = noise.numeric_schedule(t_next * torch.ones(num_samples, 1, device=device))
+        else:
+            sigma_num_curr = sigma_cat_curr
+            sigma_num_next = sigma_cat_next
 
         features = feature_fn(tokens, numeric_state)
-        scores = base_score_fn(features, sigma_curr)
+        scores = base_score_fn(features, sigma_cat_curr)
         discrete_scores = scores[:, :graph.dim]
         numeric_scores = scores[:, graph.dim:]
 
-        dsigma = sigma_curr - sigma_next
+        dsigma_cat = sigma_cat_curr - sigma_cat_next
         tokens = projector(tokens)
-        probs = graph.staggered_score(discrete_scores, dsigma) * graph.transp_transition(tokens, dsigma)
+        probs = graph.staggered_score(discrete_scores, dsigma_cat) * graph.transp_transition(tokens, dsigma_cat)
         tokens = sample_categorical(probs)
 
-        sigma_sq_curr = sigma_curr ** 2
-        sigma_sq_next = sigma_next ** 2
+        sigma_sq_curr = sigma_num_curr ** 2
+        sigma_sq_next = sigma_num_next ** 2
         delta_sigma_sq = torch.clamp(sigma_sq_curr - sigma_sq_next, min=0.0)
         noise_scale = torch.sqrt(delta_sigma_sq + 1e-12)
-        delta_sigma_sq = delta_sigma_sq.view(-1, 1)
-        noise_scale = noise_scale.view(-1, 1)
-        stochastic_term = noise_scale * torch.randn_like(numeric_state)
-        numeric_state = numeric_state + delta_sigma_sq * numeric_scores + stochastic_term
+        stochastic_term = noise_scale.view(-1, 1) * torch.randn_like(numeric_state)
+        numeric_state = numeric_state + delta_sigma_sq.view(-1, 1) * numeric_scores + stochastic_term
 
     if denoise:
         t_final = timesteps[-1] * torch.ones(num_samples, 1, device=device)
-        sigma_final = noise(t_final)[0]
+        sigma_cat_final = noise(t_final)[0]
+        if hasattr(noise, "numeric_schedule"):
+            sigma_num_final, _ = noise.numeric_schedule(t_final)
+        else:
+            sigma_num_final = sigma_cat_final
         features = feature_fn(tokens, numeric_state)
-        scores = base_score_fn(features, sigma_final)
+        scores = base_score_fn(features, sigma_cat_final)
         discrete_scores = scores[:, :graph.dim]
         numeric_scores = scores[:, graph.dim:]
         tokens = projector(tokens)
-        probs = graph.staggered_score(discrete_scores, sigma_final) * graph.transp_transition(tokens, sigma_final)
+        probs = graph.staggered_score(discrete_scores, sigma_cat_final) * graph.transp_transition(tokens, sigma_cat_final)
         tokens = sample_categorical(probs)
-        numeric_state = numeric_state + (sigma_final ** 2).view(-1, 1) * numeric_scores
+        numeric_state = numeric_state + (sigma_num_final ** 2).view(-1, 1) * numeric_scores
 
     return tokens, numeric_state

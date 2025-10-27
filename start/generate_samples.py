@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from . import utils
@@ -13,6 +14,7 @@ from .sampling import (
     sample_block_uniform,
 )
 from .train import Config, build_model, GenerationConfig
+from .utils import TaskType
 
 
 def parse_args() -> argparse.Namespace:
@@ -83,7 +85,7 @@ def main() -> None:
 
     input_dim = graph.dim + dataset.n_num_features
     model = build_model(config.model, dataset, input_dim).to(device)
-    noise = get_noise(config)
+    noise = get_noise(config.noise, config.numeric_noise)
 
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model.load_state_dict(checkpoint["model"])
@@ -125,6 +127,33 @@ def main() -> None:
         numeric=numeric_np,
         numeric_columns=info.get("numeric_columns"),
     )
+
+    target_column = info.get("target")
+    if target_column:
+        labels: list[np.ndarray] = []
+        for split in ("train", "val", "test"):
+            if split in dataset.y:
+                labels.append(dataset.y[split])
+        if labels:
+            y_all = np.concatenate(labels)
+            if dataset.task_type in {TaskType.BINCLASS, TaskType.MULTICLASS}:
+                y_all_int = y_all.astype(int)
+                counts = np.bincount(y_all_int)
+                probs = counts / counts.sum()
+                rng = np.random.default_rng()
+                sampled = rng.choice(len(probs), size=num_samples, p=probs)
+                if dataset.task_type == TaskType.BINCLASS:
+                    df[target_column] = sampled.astype(bool)
+                else:
+                    df[target_column] = sampled.astype(int)
+            else:
+                mean = float(y_all.mean())
+                std = float(y_all.std())
+                rng = np.random.default_rng()
+                sampled = rng.normal(loc=mean, scale=std if std > 0 else 1e-6, size=num_samples)
+                if dataset.y_info and "mean" in dataset.y_info and "std" in dataset.y_info:
+                    sampled = sampled * dataset.y_info["std"] + dataset.y_info["mean"]
+                df[target_column] = sampled
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)

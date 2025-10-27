@@ -34,12 +34,33 @@
    - Config defaults: mean imputation, `new_category` categorical policy, `quantile` normalization, EMA, checkpoints.
 
 5. **Generate synthetic samples from a checkpoint**  
-   The config ships a `[generation]` block with default values, so the minimal command is:
+   The config ships a `[generation]` block with default values; just point it at the checkpoint you want:
    ```bash
-   python -m start.generate_samples --config start/configs/shoppers.toml
+   python -m start.generate_samples \
+     --config start/configs/shoppers.toml \
+     --checkpoint <path/to/epoch_xxxx.pt> \
+     --output samples/shoppers_samples.csv
    ```
-   Override at the CLI when needed (`--checkpoint`, `--num-samples`, `--output`).  
-   Generated CSVs reuse the preprocessing metadata to decode categorical and numeric columns properly.
+   Override `--num-samples` when you need a specific row count. The script decodes categorical tokens and inverts the numeric transformer so the CSV matches the original schema.
+
+6. **Compare real vs synthetic tables (shape/trend)**  
+   ```bash
+   python -m start.evaluate_quality \
+     --real data/shoppers/online_shoppers_intention.csv \
+     --synthetic samples/shoppers_samples.csv \
+     --info start/dataset/shoppers/info.json
+   ```
+   Reports the Tab-Diff style “shape” (distributional distance) and “trend” (mean shift) error rates for categorical, numeric, and target columns.
+
+### Noise Schedules
+
+- **Categorical** features follow a log-linear schedule.  
+- **Numeric** features follow a power-mean (EDM) schedule and are trained with denoising score matching.  
+  Training and sampling both use the same hybrid schedule so σ(t) stays consistent across pipelines.
+
+### AIMERS Convenience CSV
+
+`start/dataset/aimers/data.csv` bundles the imputed categorical tensors plus `임신 성공 확률` target and a `split` column. Use it for quick inspection without re-running the tensor preprocessing.
 
 Method (toy demo)
 1. Generate discrete + numeric toy data (`make_toy_dataset.py`).

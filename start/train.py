@@ -60,6 +60,8 @@ class NoiseConfig:
     type: str = "geometric"
     sigma_min: float = 1e-3
     sigma_max: float = 1.0
+    eps: float = 1e-3
+    rho: float = 7.0
 
 
 @dataclass
@@ -122,6 +124,7 @@ class Config:
     optim: OptimConfig
     train: TrainLoopConfig
     sampling: SamplingConfig = field(default_factory=SamplingConfig)
+    numeric_noise: Optional[NoiseConfig] = None
     generation: Optional[GenerationConfig] = None
 
 
@@ -264,7 +267,7 @@ def train(config: Config) -> None:
     input_dim = graph.dim + dataset.n_num_features
     model = build_model(config.model, dataset, input_dim).to(device)
 
-    noise = get_noise(config)
+    noise = get_noise(config.noise, config.numeric_noise)
 
     optimizer = get_optimizer(config, model.parameters())
     ema = ExponentialMovingAverage(model.parameters(), config.train.ema_decay)
