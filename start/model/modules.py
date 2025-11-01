@@ -476,22 +476,27 @@ class ResNetDiffusion(nn.Module):
         self.dim_t = dim_t
         self.num_classes = num_classes
 
+        rtdl_params = dict(rtdl_params)
         rtdl_params['d_in'] = d_in
         rtdl_params['d_out'] = d_in
-        rtdl_params['emb_d'] = dim_t
         self.resnet = ResNet.make_baseline(**rtdl_params)
 
         if self.num_classes > 0:
             self.label_emb = nn.Embedding(self.num_classes, dim_t)
+        else:
+            self.label_emb = None
 
         self.time_embed = nn.Sequential(
             nn.Linear(dim_t, dim_t),
             nn.SiLU(),
             nn.Linear(dim_t, dim_t)
         )
+        self.embed_proj = nn.Linear(dim_t, d_in)
 
     def forward(self, x, timesteps, y=None):
         emb = self.time_embed(timestep_embedding(timesteps, self.dim_t))
-        if y is not None and self.num_classes > 0:
+        if y is not None and self.num_classes > 0 and self.label_emb is not None:
             emb += self.label_emb(y.squeeze())
-        return self.resnet(x, emb)
+
+        h = x.float() + self.embed_proj(emb)
+        return self.resnet(h)

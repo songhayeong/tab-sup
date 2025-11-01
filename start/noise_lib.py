@@ -2,10 +2,10 @@ import abc
 import torch
 import torch.nn as nn
 import numpy as np
-from typing import Optional
+from typing import Optional, Tuple
 
 
-def _build_noise(cfg):
+def _build_noise(cfg, num_numerical: Optional[int] = None):
     if cfg is None:
         return None
     noise_type = cfg.type.lower()
@@ -15,13 +15,23 @@ def _build_noise(cfg):
         return LogLinearNoise(eps=cfg.eps)
     elif noise_type == 'power_mean':
         return PowerMeanNoise(cfg.sigma_min, cfg.sigma_max, cfg.rho)
+    elif noise_type == 'power_mean_per_column':
+        if num_numerical is None:
+            raise ValueError("power_mean_per_column noise requires the number of numerical features.")
+        return PowerMeanNoise_PerColumn(
+            num_numerical=num_numerical,
+            sigma_min=cfg.sigma_min,
+            sigma_max=cfg.sigma_max,
+            rho_init=getattr(cfg, "rho_init", 1.0),
+            rho_offset=getattr(cfg, "rho_offset", 2.0),
+        )
     else:
         raise ValueError(f"{cfg.type} is not a valid noise")
 
 
-def get_noise(config, numeric_config: Optional[object] = None):
-    categorical_noise = _build_noise(config)
-    numeric_noise = _build_noise(numeric_config)
+def get_noise(config, numeric_config: Optional[object] = None, num_numerical: Optional[int] = None):
+    categorical_noise = _build_noise(config, num_numerical=None)
+    numeric_noise = _build_noise(numeric_config, num_numerical=num_numerical)
     if categorical_noise is None:
         raise ValueError("Categorical noise configuration must be provided.")
     if numeric_noise is None:
@@ -159,52 +169,63 @@ class HybridNoise(nn.Module):
         return self.numeric_noise(t)
 
 
-class PowerMeanNoise_PerColumn(nn.Module):
+class PowerMeanNoise_PerColumn(Noise):
 
-  def __init__(self, num_numerical, sigma_min=0.002, sigma_max=80, rho_init=1, rho_offset=2, **kwargs):
-    super().__init__()
-    self.sigma_min = sigma_min
-    self.sigma_max = sigma_max
-    self.num_numerical = num_numerical
-    self.rho_offset = rho_offset
-    self.rho_raw = nn.Parameter(torch.tensor([rho_init] * self.num_numerical, dtype=torch.float32))
+    def __init__(
+        self,
+        num_numerical: int,
+        sigma_min: float = 0.002,
+        sigma_max: float = 80,
+        rho_init: float = 1.0,
+        rho_offset: float = 2.0,
+        **kwargs,
+    ):
+        super().__init__()
+        if num_numerical <= 0:
+            raise ValueError("num_numerical must be positive for per-column power mean noise.")
+        self.num_numerical = int(num_numerical)
+        self.sigma_min = float(sigma_min)
+        self.sigma_max = float(sigma_max)
+        self.rho_offset = float(rho_offset)
+        self.rho_raw = nn.Parameter(
+            torch.full((self.num_numerical,), float(rho_init), dtype=torch.float32)
+        )
 
-  def rho(self):
-    # Return the softplus-transformed rho for all num_numerical values
-    return nn.functional.softplus(self.rho_raw) + self.rho_offset
+    def rho(self) -> torch.Tensor:
+        # Return the softplus-transformed rho for all num_numerical values
+        return nn.functional.softplus(self.rho_raw) + self.rho_offset
 
-  def total_noise(self, t):
-    """
-    Compute total noise for each t in the batch for all num_numerical rhos.
-    t: [batch_size]
-    Returns: [batch_size, num_numerical]
-    """
-    batch_size = t.size(0)
+    def _prep_t(self, t: torch.Tensor) -> torch.Tensor:
+        t = t.to(self.rho_raw.device, dtype=self.rho_raw.dtype)
+        if t.ndim == 1:
+            t = t.unsqueeze(-1)
+        return t
 
-    rho = self.rho()
+    def _sigma_bounds(
+        self, device: torch.device, rho: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        sigma_min = torch.tensor(self.sigma_min, device=device, dtype=rho.dtype)
+        sigma_max = torch.tensor(self.sigma_max, device=device, dtype=rho.dtype)
+        sigma_min_pow = torch.pow(sigma_min, 1 / rho)
+        sigma_max_pow = torch.pow(sigma_max, 1 / rho)
+        return sigma_min_pow, sigma_max_pow
 
-    sigma_min_pow = self.sigma_min ** (1 / rho)  # Shape: [num_numerical]
-    sigma_max_pow = self.sigma_max ** (1 / rho)  # Shape: [num_numerical]
+    def total_noise(self, t: torch.Tensor) -> torch.Tensor:
+        t = self._prep_t(t)
+        rho = self.rho().to(t.device)
+        sigma_min_pow, sigma_max_pow = self._sigma_bounds(t.device, rho)
+        base = sigma_min_pow + t * (sigma_max_pow - sigma_min_pow)
+        return base.pow(rho)
 
-    sigma = (sigma_min_pow + t * (sigma_max_pow - sigma_min_pow)).pow(rho)  # Shape: [batch_size, num_numerical]
+    def rate_noise(self, t: torch.Tensor) -> torch.Tensor:
+        t = self._prep_t(t)
+        rho = self.rho().to(t.device)
+        sigma_min_pow, sigma_max_pow = self._sigma_bounds(t.device, rho)
+        base = sigma_min_pow + t * (sigma_max_pow - sigma_min_pow)
+        return rho * base.pow(rho - 1) * (sigma_max_pow - sigma_min_pow)
 
-    return sigma
-
-  def rate_noise(self, t):
-    return None
-
-  def inverse_to_t(self, sigma):
-    """
-    Inverse function to map sigma back to t, with proper broadcasting support.
-    sigma: [batch_size, num_numerical] or [batch_size, 1]
-    Returns: t: [batch_size, num_numerical]
-    """
-    rho = self.rho()
-
-    sigma_min_pow = self.sigma_min ** (1 / rho)  # Shape: [num_numerical]
-    sigma_max_pow = self.sigma_max ** (1 / rho)  # Shape: [num_numerical]
-
-    # To enable broadcasting between sigma and the per-column rho values, expand rho where needed.
-    t = (sigma.pow(1 / rho) - sigma_min_pow) / (sigma_max_pow - sigma_min_pow)
-
-    return t
+    def inverse_to_t(self, sigma: torch.Tensor) -> torch.Tensor:
+        rho = self.rho().to(sigma.device)
+        sigma = sigma.to(rho.device)
+        sigma_min_pow, sigma_max_pow = self._sigma_bounds(sigma.device, rho)
+        return (sigma.pow(1 / rho) - sigma_min_pow) / (sigma_max_pow - sigma_min_pow)

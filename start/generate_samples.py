@@ -85,7 +85,8 @@ def main() -> None:
 
     input_dim = graph.dim + dataset.n_num_features
     model = build_model(config.model, dataset, input_dim).to(device)
-    noise = get_noise(config.noise, config.numeric_noise)
+    num_numerical = dataset.n_num_features if dataset.n_num_features > 0 else None
+    noise = get_noise(config.noise, config.numeric_noise, num_numerical=num_numerical)
 
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model.load_state_dict(checkpoint["model"])
@@ -105,6 +106,7 @@ def main() -> None:
         denoise=config.sampling.noise_removal,
         eps=1e-5,
         device=device,
+        numeric_clip=generation_cfg.numeric_clip,
     )
 
     if isinstance(samples, tuple):
@@ -113,14 +115,30 @@ def main() -> None:
         tokens, numeric = samples, None
 
     categorical = decode_block_uniform_tokens(graph, tokens, dataset.cat_transform)
+    info_path = Path(config.dataset.path) / "info.json"
+    info = utils.load_json(info_path) if info_path.exists() else {}
     numeric_np = None
     if numeric is not None:
+        clip_value = generation_cfg.numeric_clip
+        if clip_value is not None and clip_value > 0:
+            numeric = numeric.clamp_(-clip_value, clip_value)
         numeric_np = numeric.detach().cpu().numpy()
         if dataset.num_transform is not None:
             numeric_np = dataset.num_transform.inverse_transform(numeric_np)
+        if getattr(dataset, "dequantizer", None) is not None:
+            numeric_np = dataset.dequantizer.inverse_transform(numeric_np)
+        numeric_cols_meta = info.get("numeric_columns") if info else None
+        if numeric_cols_meta and numeric_np.shape[1] > len(numeric_cols_meta):
+            extra = numeric_np.shape[1] - len(numeric_cols_meta)
+            print(
+                f"Trimming {extra} one-hot-expanded numeric columns; keeping first {len(numeric_cols_meta)} original numeric features."
+            )
+            numeric_np = numeric_np[:, :len(numeric_cols_meta)]
+        elif numeric_cols_meta and numeric_np.shape[1] < len(numeric_cols_meta):
+            print(
+                f"Warning: generated numeric features ({numeric_np.shape[1]}) fewer than metadata columns ({len(numeric_cols_meta)})."
+            )
 
-    info_path = Path(config.dataset.path) / "info.json"
-    info = utils.load_json(info_path) if info_path.exists() else {}
     df = decoded_to_dataframe(
         categorical,
         columns=info.get("categorical_columns"),

@@ -53,6 +53,7 @@ class DatasetConfig:
 class GraphConfig:
     type: str = "block_uniform"
     group_sizes: Optional[List[int]] = None
+    tokens: Optional[int] = None
 
 
 @dataclass
@@ -62,6 +63,8 @@ class NoiseConfig:
     sigma_max: float = 1.0
     eps: float = 1e-3
     rho: float = 7.0
+    rho_init: float = 1.0
+    rho_offset: float = 2.0
 
 
 @dataclass
@@ -112,6 +115,7 @@ class GenerationConfig:
     checkpoint: Optional[str] = None
     num_samples: int = 512
     output: Optional[str] = None
+    numeric_clip: Optional[float] = None
 
 
 @dataclass
@@ -264,10 +268,12 @@ def train(config: Config) -> None:
     )
 
     train_loader, val_loader = _get_dataloaders(dataset, config.dataset)
-    input_dim = graph.dim + dataset.n_num_features
+    cat_dim = graph.dim if dataset.X_cat is not None else 0
+    input_dim = dataset.n_num_features + cat_dim
     model = build_model(config.model, dataset, input_dim).to(device)
 
-    noise = get_noise(config.noise, config.numeric_noise)
+    num_numerical = dataset.n_num_features if dataset.n_num_features > 0 else None
+    noise = get_noise(config.noise, config.numeric_noise, num_numerical=num_numerical)
 
     optimizer = get_optimizer(config, model.parameters())
     ema = ExponentialMovingAverage(model.parameters(), config.train.ema_decay)

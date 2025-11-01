@@ -87,8 +87,12 @@ def get_loss_fn(noise, graph, train, sampling_eps=1e-3, lv=False):
             numeric_out = model_out[:, graph.dim:] if graph.dim > 0 else model_out
             sigma_sq = (sigma_num.view(-1, 1) if sigma_num.ndim == 1 else sigma_num) ** 2
             target_score = -(perturbed_numeric - numeric) / (sigma_sq + 1e-12)
-            numeric_loss = 0.5 * torch.sum((numeric_out - target_score) ** 2, dim=-1)
-            loss_total = loss_total + dsigma_num.view(-1) * numeric_loss
+            sq_error = 0.5 * (numeric_out - target_score) ** 2
+            if dsigma_num.ndim == 1 or (dsigma_num.ndim == 2 and dsigma_num.shape[-1] == 1):
+                weights = dsigma_num.view(-1)
+                loss_total = loss_total + weights * sq_error.sum(dim=-1)
+            else:
+                loss_total = loss_total + (sq_error * dsigma_num).sum(dim=-1)
 
         return loss_total
 

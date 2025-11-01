@@ -16,9 +16,25 @@ if TYPE_CHECKING:
 
 def get_graph(config, device, group_sizes: Optional[Sequence[int]] = None, dataset: Optional['Dataset'] = None):
     if config.graph.type == "uniform":
-        return Uniform(config.tokens)
+        tokens = getattr(config.graph, 'tokens', None)
+        if tokens is None:
+            raise ValueError("Uniform graph requires `graph.tokens` to be specified in the config.")
+        return Uniform(tokens)
     elif config.graph.type == "absorb":
-        return Absorbing(config.tokens)
+        tokens = getattr(config.graph, 'tokens', None)
+        if tokens is None:
+            raise ValueError("Absorbing graph requires `graph.tokens` to be specified in the config.")
+        return Absorbing(tokens)
+    elif config.graph.type == "block_absorb":
+        if group_sizes is None and dataset is not None:
+            from .data import infer_block_group_sizes
+            group_sizes = infer_block_group_sizes(dataset)
+        sizes = getattr(config.graph, 'group_sizes', None)
+        if sizes is None:
+            if group_sizes is None:
+                raise ValueError("BlockAbsorb graph requires group_sizes from config, argument, or dataset metadata.")
+            sizes = group_sizes
+        return BlockAbsorbing(sizes)
     elif config.graph.type == "block_uniform":
         if group_sizes is None and dataset is not None:
             from .data import infer_block_group_sizes
@@ -501,4 +517,251 @@ class Absorbing(Graph):
 
         entropy = torch.zeros(*x.shape, device=x.device)
         entropy[rel_ind] += pos_term - neg_term + const
+        return entropy
+
+
+class BlockAbsorbing(Graph):
+    """
+    Per-feature absorbing transitions. Each categorical group has its own mask state
+    (absorbing value) that diffusion can transition into independently.
+    """
+
+    def __init__(self, group_sizes: Sequence[int]):
+        if not group_sizes:
+            raise ValueError("group_sizes must contain at least one positive integer")
+        if any(x <= 0 for x in group_sizes):
+            raise ValueError("Group sizes must be positive")
+
+        base_sizes = torch.as_tensor(group_sizes, dtype=torch.long)
+        self._base_sizes = base_sizes
+        self._group_sizes = base_sizes + 1  # add absorbing state
+        self._base_sizes_list = [int(x) for x in base_sizes.tolist()]
+        self._group_sizes_list = [int(x) for x in self._group_sizes.tolist()]
+        self._dim = int(self._group_sizes.sum().item())
+        self._group_starts = torch.cumsum(self._group_sizes, dim=0) - self._group_sizes
+        self._index_group = torch.repeat_interleave(
+            torch.arange(len(group_sizes), dtype=torch.long),
+            self._group_sizes
+        )
+        self._absorbing_cache = {}
+
+    def _get_absorbing(self, base_size: int) -> Absorbing:
+        absorbing = self._absorbing_cache.get(base_size)
+        if absorbing is None:
+            absorbing = Absorbing(base_size)
+            self._absorbing_cache[base_size] = absorbing
+        return absorbing
+
+    @property
+    def dim(self) -> int:
+        return self._dim
+
+    @property
+    def absorb(self) -> bool:
+        return True
+
+    @property
+    def group_sizes(self) -> Sequence[int]:
+        return self._group_sizes_list
+
+    @property
+    def base_group_sizes(self) -> Sequence[int]:
+        return self._base_sizes_list
+
+    @property
+    def group_starts(self) -> torch.Tensor:
+        return self._group_starts
+
+    @property
+    def num_groups(self) -> int:
+        return len(self._group_sizes_list)
+
+    def _broadcast_buffers(self, device: torch.device) -> Tuple[torch.Tensor, ...]:
+        return (
+            self._group_sizes.to(device),
+            self._group_starts.to(device),
+            self._index_group.to(device),
+        )
+
+    def to_global(self, local_tokens: torch.Tensor) -> torch.Tensor:
+        if local_tokens.numel() == 0:
+            return local_tokens
+        return local_tokens + self._group_starts.to(local_tokens.device)
+
+    def to_local(self, global_tokens: torch.Tensor) -> torch.Tensor:
+        if global_tokens.numel() == 0:
+            return global_tokens
+        return global_tokens - self._group_starts.to(global_tokens.device)
+
+    def rate(self, i: torch.Tensor) -> torch.Tensor:
+        device = i.device
+        _, group_starts, _ = self._broadcast_buffers(device)
+        result = torch.zeros(*i.shape, self.dim, device=device)
+        for idx, base_size in enumerate(self._base_sizes_list):
+            start = group_starts[idx].item()
+            size = self._group_sizes_list[idx]
+            absorber = self._get_absorbing(base_size)
+            local = i[..., idx] - start
+            rate_local = absorber.rate(local)
+            index = [slice(None)] * result.ndim
+            index[-2] = idx
+            index[-1] = slice(start, start + size)
+            result[tuple(index)] = rate_local
+        return result
+
+    def transp_rate(self, i: torch.Tensor) -> torch.Tensor:
+        device = i.device
+        _, group_starts, _ = self._broadcast_buffers(device)
+        result = torch.zeros(*i.shape, self.dim, device=device)
+        for idx, base_size in enumerate(self._base_sizes_list):
+            start = group_starts[idx].item()
+            size = self._group_sizes_list[idx]
+            absorber = self._get_absorbing(base_size)
+            local = i[..., idx] - start
+            rate_local = absorber.transp_rate(local)
+            index = [slice(None)] * result.ndim
+            index[-2] = idx
+            index[-1] = slice(start, start + size)
+            result[tuple(index)] = rate_local
+        return result
+
+    def transition(self, i: torch.Tensor, sigma: torch.Tensor) -> torch.Tensor:
+        device = i.device
+        sigma = sigma.to(device)
+        sigma_expanded = sigma
+        while sigma_expanded.ndim < i.ndim:
+            sigma_expanded = sigma_expanded.unsqueeze(-1)
+        sigma_expanded = sigma_expanded.expand_as(i)
+
+        _, group_starts, _ = self._broadcast_buffers(device)
+        result = torch.zeros(*i.shape, self.dim, device=device)
+        for idx, base_size in enumerate(self._base_sizes_list):
+            start = group_starts[idx].item()
+            size = self._group_sizes_list[idx]
+            local = i[..., idx] - start
+            sigma_local = sigma_expanded[..., idx]
+
+            flat_local = local.reshape(-1)
+            flat_sigma = sigma_local.reshape(-1)
+            trans_flat = torch.zeros(flat_local.size(0), size, device=device)
+            absorbing_idx = size - 1
+            abs_mask = flat_local == absorbing_idx
+            if abs_mask.any():
+                trans_flat[abs_mask, absorbing_idx] = 1.0
+            active_mask = ~abs_mask
+            if active_mask.any():
+                stay = torch.exp(-flat_sigma[active_mask])
+                move = 1 - stay
+                active_local = flat_local[active_mask]
+                trans_flat[active_mask, absorbing_idx] = move
+                trans_flat[active_mask, active_local] = stay
+            trans_local = trans_flat.view(*local.shape, size)
+            index = [slice(None)] * result.ndim
+            index[-2] = idx
+            index[-1] = slice(start, start + size)
+            result[tuple(index)] = trans_local
+        return result
+
+    def transp_transition(self, i: torch.Tensor, sigma: torch.Tensor) -> torch.Tensor:
+        device = i.device
+        sigma = sigma.to(device)
+        sigma_expanded = sigma
+        while sigma_expanded.ndim < i.ndim:
+            sigma_expanded = sigma_expanded.unsqueeze(-1)
+        sigma_expanded = sigma_expanded.expand_as(i)
+
+        _, group_starts, _ = self._broadcast_buffers(device)
+        result = torch.zeros(*i.shape, self.dim, device=device)
+        for idx, base_size in enumerate(self._base_sizes_list):
+            start = group_starts[idx].item()
+            size = self._group_sizes_list[idx]
+            absorber = self._get_absorbing(base_size)
+            local = i[..., idx] - start
+            sigma_local = sigma_expanded[..., idx]
+            trans_local = absorber.transp_transition(local, sigma_local)
+            index = [slice(None)] * result.ndim
+            index[-2] = idx
+            index[-1] = slice(start, start + size)
+            result[tuple(index)] = trans_local
+        return result
+
+    def sample_transition(self, i: torch.Tensor, sigma: torch.Tensor) -> torch.Tensor:
+        device = i.device
+        sigma = sigma.to(device)
+        sigma_expanded = sigma
+        while sigma_expanded.ndim < i.ndim:
+            sigma_expanded = sigma_expanded.unsqueeze(-1)
+        sigma_expanded = sigma_expanded.expand_as(i)
+
+        local = self.to_local(i)
+        result_local = torch.empty_like(local)
+        for idx, base_size in enumerate(self._base_sizes_list):
+            absorber = self._get_absorbing(base_size)
+            sigma_local = sigma_expanded[..., idx]
+            result_local[..., idx] = absorber.sample_transition(local[..., idx], sigma_local)
+        return self.to_global(result_local)
+
+    def reverse_rate(self, i: torch.Tensor, score: torch.Tensor) -> torch.Tensor:
+        base = self.transp_rate(i)
+        if score.dim() == 2:
+            score_expanded = torch.zeros_like(base)
+            start_idx = 0
+            for size in self._group_sizes_list:
+                end_idx = start_idx + size
+                score_expanded[:, :, start_idx:end_idx] = score[:, start_idx:end_idx].unsqueeze(1)
+                start_idx = end_idx
+        else:
+            score_expanded = score
+
+        normalized_rate = base * score_expanded
+        normalized_rate.scatter_(-1, i[..., None], torch.zeros_like(normalized_rate))
+        normalized_rate.scatter_(-1, i[..., None], -normalized_rate.sum(dim=-1, keepdim=True))
+        return normalized_rate
+
+    def staggered_score(self, score: torch.Tensor, dsigma: torch.Tensor) -> torch.Tensor:
+        batch = score.shape[0]
+        result = torch.zeros(batch, self.num_groups, self.dim, device=score.device, dtype=score.dtype)
+        dsigma_expanded = dsigma.reshape(score.shape[0], 1)
+
+        start_idx = 0
+        for group_idx, base_size in enumerate(self._base_sizes_list):
+            size = self._group_sizes_list[group_idx]
+            end_idx = start_idx + size
+            sub_score = score[:, start_idx:end_idx]
+            absorber = self._get_absorbing(base_size)
+            sub_result = absorber.staggered_score(sub_score, dsigma_expanded.squeeze(-1))
+            result[:, group_idx, start_idx:end_idx] = sub_result
+            start_idx = end_idx
+
+        return result
+
+    def sample_limit(self, *batch_dims):
+        if not batch_dims:
+            batch_dims = (1,)
+        device = self._group_sizes.device
+        local = torch.stack(
+            [
+                absorber.sample_limit(*batch_dims).to(device)
+                for absorber in (self._get_absorbing(size) for size in self._base_sizes_list)
+            ],
+            dim=-1,
+        )
+        return self.to_global(local)
+
+    def score_entropy(self, score, sigma, x, x0):
+        device = score.device
+        sigma = sigma.reshape(-1)
+        entropy = torch.zeros(score.shape[0], device=device, dtype=score.dtype)
+
+        for idx, base_size in enumerate(self._base_sizes_list):
+            start = self._group_starts[idx].item()
+            size = self._group_sizes_list[idx]
+            absorber = self._get_absorbing(base_size)
+
+            score_slice = score[:, start:start + size]
+            x_local = x[:, idx] - start
+            x0_local = x0[:, idx] - start
+
+            entropy += absorber.score_entropy(score_slice, sigma, x_local, x0_local)
+
         return entropy

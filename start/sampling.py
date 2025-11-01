@@ -216,8 +216,15 @@ def make_block_uniform_feature_fn(graph, numeric_template: Optional[torch.Tensor
 
 
 def make_block_uniform_projector(graph):
+    group_sizes = torch.tensor(graph.group_sizes, dtype=torch.long)
+
     def projector(tokens_global: torch.Tensor) -> torch.Tensor:
         local = graph.to_local(tokens_global).round().long()
+        device = tokens_global.device
+        sizes = group_sizes.to(device)
+        local = torch.clamp(local, min=0)
+        for idx, size in enumerate(sizes):
+            local[..., idx] = local[..., idx].clamp(max=size.item() - 1)
         return graph.to_global(local)
 
     return projector
@@ -255,6 +262,12 @@ def decoded_to_dataframe(decoded, columns=None, numeric=None, numeric_columns=No
         if numeric_np.size > 0:
             if numeric_columns is None:
                 numeric_columns = [f"num_{idx}" for idx in range(numeric_np.shape[1])]
+            elif len(numeric_columns) != numeric_np.shape[1]:
+                print(
+                    f"Warning: numeric column metadata length {len(numeric_columns)} does not match "
+                    f"generated data width {numeric_np.shape[1]}. Falling back to generic names."
+                )
+                numeric_columns = [f"num_{idx}" for idx in range(numeric_np.shape[1])]
             frames.append(pd.DataFrame(numeric_np, columns=numeric_columns))
     if not frames:
         return pd.DataFrame()
@@ -274,6 +287,7 @@ def sample_block_uniform(
         feature_fn=None,
         state_proj=None,
         numeric_context: Optional[torch.Tensor] = None,
+        numeric_clip: Optional[float] = None,
 ):
     if device is None:
         device = next(model.parameters()).device
@@ -328,11 +342,19 @@ def sample_block_uniform(
             init_sigma = 1.0
         numeric_state = torch.randn(num_samples, numeric_dim, device=device) * init_sigma
 
+    if numeric_clip is not None and numeric_clip > 0:
+        numeric_state = torch.clamp(numeric_state, -numeric_clip, numeric_clip)
+
     projector = state_proj
     base_score_fn = mutils.get_score_fn(model, train=False, sampling=True, discrete_dim=graph.dim)
     tokens = graph.sample_limit(*batch_dims).to(device)
 
     timesteps = torch.linspace(1, eps, steps + 1, device=device)
+
+    def match_numeric_shape(t: torch.Tensor) -> torch.Tensor:
+        if t.ndim < numeric_state.ndim:
+            t = t.view(*t.shape, *([1] * (numeric_state.ndim - t.ndim)))
+        return t
 
     for idx in range(steps):
         t_curr = timesteps[idx]
@@ -347,6 +369,7 @@ def sample_block_uniform(
             sigma_num_curr = sigma_cat_curr
             sigma_num_next = sigma_cat_next
 
+        tokens = projector(tokens)
         features = feature_fn(tokens, numeric_state)
         scores = base_score_fn(features, sigma_cat_curr)
         discrete_scores = scores[:, :graph.dim]
@@ -360,9 +383,13 @@ def sample_block_uniform(
         sigma_sq_curr = sigma_num_curr ** 2
         sigma_sq_next = sigma_num_next ** 2
         delta_sigma_sq = torch.clamp(sigma_sq_curr - sigma_sq_next, min=0.0)
+
+        delta_sigma_sq = match_numeric_shape(delta_sigma_sq)
         noise_scale = torch.sqrt(delta_sigma_sq + 1e-12)
-        stochastic_term = noise_scale.view(-1, 1) * torch.randn_like(numeric_state)
-        numeric_state = numeric_state + delta_sigma_sq.view(-1, 1) * numeric_scores + stochastic_term
+        stochastic_term = noise_scale * torch.randn_like(numeric_state)
+        numeric_state = numeric_state + delta_sigma_sq * numeric_scores + stochastic_term
+        if numeric_clip is not None and numeric_clip > 0:
+            numeric_state = torch.clamp(numeric_state, -numeric_clip, numeric_clip)
 
     if denoise:
         t_final = timesteps[-1] * torch.ones(num_samples, 1, device=device)
@@ -371,6 +398,7 @@ def sample_block_uniform(
             sigma_num_final, _ = noise.numeric_schedule(t_final)
         else:
             sigma_num_final = sigma_cat_final
+        tokens = projector(tokens)
         features = feature_fn(tokens, numeric_state)
         scores = base_score_fn(features, sigma_cat_final)
         discrete_scores = scores[:, :graph.dim]
@@ -378,6 +406,9 @@ def sample_block_uniform(
         tokens = projector(tokens)
         probs = graph.staggered_score(discrete_scores, sigma_cat_final) * graph.transp_transition(tokens, sigma_cat_final)
         tokens = sample_categorical(probs)
-        numeric_state = numeric_state + (sigma_num_final ** 2).view(-1, 1) * numeric_scores
+        sigma_sq_final = match_numeric_shape(sigma_num_final ** 2)
+        numeric_state = numeric_state + sigma_sq_final * numeric_scores
+        if numeric_clip is not None and numeric_clip > 0:
+            numeric_state = torch.clamp(numeric_state, -numeric_clip, numeric_clip)
 
     return tokens, numeric_state

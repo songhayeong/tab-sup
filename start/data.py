@@ -48,6 +48,7 @@ NumNanPolicy = Literal['drop-rows', 'mean']
 CatNanPolicy = Literal['most_frequent', 'new_category']
 CatEncoding = Literal['one-hot', 'counter']
 YPolicy = Literal['default']
+DEQUANT_DIST = Literal['uniform', 'beta', 'round', 'none']
 
 
 class StandardScaler1d(StandardScaler):
@@ -102,6 +103,7 @@ class Dataset:
     n_classes: Optional[int]
     cat_group_sizes: Optional[List[int]] = None
     cat_columns: Optional[List[str]] = None
+    dequantizer: Optional["Dequantizer"] = None
 
     @classmethod
     def from_dir(cls, dir_: Union[Path, str]) -> 'Dataset':
@@ -272,6 +274,43 @@ def num_normalize(
     return transformed, transformer
 
 
+class Dequantizer:
+    def __init__(self, dequant_dist: DEQUANT_DIST, int_col_idx_wrt_num: list, int_dequant_factor: float):
+        self.dequant_dist = dequant_dist
+        self.int_col_idx_wrt_num = int_col_idx_wrt_num
+        self.int_dequant_factor = int_dequant_factor
+
+    def transform(self, X):
+        dtype = X.dtype
+        X_int = X[:, self.int_col_idx_wrt_num]
+        if self.dequant_dist == 'uniform':
+            noise = np.random.uniform(size=X_int.shape).astype(dtype, copy=False)
+            X[:, self.int_col_idx_wrt_num] = X_int + noise * self.int_dequant_factor
+        elif self.dequant_dist == 'beta':
+            noise = np.random.beta(
+                self.int_dequant_factor,
+                self.int_dequant_factor,
+                size=X_int.shape,
+            ).astype(dtype, copy=False) - dtype.type(0.5)
+            X[:, self.int_col_idx_wrt_num] = X_int + noise
+        elif self.dequant_dist in ['round', 'none']:
+            pass
+        return X
+
+    def inverse_transform(self, X):
+        dtype = X.dtype
+        X_int = X[:, self.int_col_idx_wrt_num]
+        if self.dequant_dist == 'uniform':
+            X[:, self.int_col_idx_wrt_num] = np.floor(X_int).astype(dtype, copy=False)
+        elif self.dequant_dist == 'beta':
+            X[:, self.int_col_idx_wrt_num] = np.rint(X_int).astype(dtype, copy=False)
+        elif self.dequant_dist == 'round':
+            X[:, self.int_col_idx_wrt_num] = np.rint(X_int).astype(dtype, copy=False)
+        elif self.dequant_dist == 'none':
+            pass
+        return X
+
+
 def cat_process_nans(X: ArrayDict, policy: Optional[CatNanPolicy]) -> ArrayDict:
     assert X is not None
     normalized = {}
@@ -408,6 +447,8 @@ class Transformations:
     cat_min_frequency: Optional[float] = None
     cat_encoding: Optional[CatEncoding] = None
     y_policy: Optional[YPolicy] = 'default'
+    int_dequant_dist: Optional[DEQUANT_DIST] = None
+    int_dequant_factor: float = 1.0
 
 
 def transform_dataset(
@@ -443,6 +484,18 @@ def transform_dataset(
     cat_transform = None
     X_num = dataset.X_num
     group_sizes = list(dataset.cat_group_sizes) if dataset.cat_group_sizes is not None else None
+    dequantizer: Optional[Dequantizer] = None
+
+    if X_num is not None and X_num['train'].size > 0:
+        dequant_dist = transformations.int_dequant_dist
+        if dequant_dist is not None and dequant_dist != 'none':
+            train_vals = X_num['train']
+            tol = 1e-6
+            int_col_mask = np.all(np.abs(train_vals - np.round(train_vals)) < tol, axis=0)
+            int_col_idx = np.where(int_col_mask)[0].tolist()
+            if int_col_idx:
+                dequantizer = Dequantizer(dequant_dist, int_col_idx, transformations.int_dequant_factor)
+                X_num = {k: dequantizer.transform(v.astype(np.float32, copy=True)) for k, v in X_num.items()}
 
     if dataset.X_cat is None:
         assert transformations.cat_nan_policy is None
@@ -450,26 +503,53 @@ def transform_dataset(
         # assert transformations.cat_encoding is None
         X_cat = None
     else:
-        X_cat = cat_process_nans(dataset.X_cat, transformations.cat_nan_policy)
+        X_cat_raw = cat_process_nans(dataset.X_cat, transformations.cat_nan_policy)
         if transformations.cat_min_frequency is not None:
-            X_cat = cat_drop_rare(X_cat, transformations.cat_min_frequency)
-        X_cat, is_num, cat_transform = cat_encode(
-            X_cat,
-            transformations.cat_encoding,
-            dataset.y['train'],
-            transformations.seed,
-            return_encoder=True
-        )
-        extracted = _extract_group_sizes_from_transform(cat_transform)
-        if extracted is not None:
-            group_sizes = extracted
-        if is_num:
-            X_num = (
-                X_cat
-                if X_num is None
-                else {x: np.hstack([X_num[x], X_cat[x]]) for x in X_num}
+            X_cat_raw = cat_drop_rare(X_cat_raw, transformations.cat_min_frequency)
+
+        if transformations.cat_encoding == 'one-hot':
+            X_cat, _, cat_transform = cat_encode(
+                deepcopy(X_cat_raw),
+                None,
+                dataset.y['train'],
+                transformations.seed,
+                return_encoder=True,
             )
-            X_cat = None
+            extracted = _extract_group_sizes_from_transform(cat_transform)
+            if extracted is not None:
+                group_sizes = extracted
+            X_cat_one_hot, is_num, _ = cat_encode(
+                X_cat_raw,
+                transformations.cat_encoding,
+                dataset.y['train'],
+                transformations.seed,
+                return_encoder=True,
+            )
+            if not is_num:
+                raise RuntimeError("One-hot encoding expected to produce numeric features.")
+            X_num = (
+                X_cat_one_hot
+                if X_num is None
+                else {k: np.hstack([X_num[k], X_cat_one_hot[k]]) for k in X_num}
+            )
+        else:
+            X_cat, is_num, cat_transform = cat_encode(
+                X_cat_raw,
+                transformations.cat_encoding,
+                dataset.y['train'],
+                transformations.seed,
+                return_encoder=True
+            )
+            extracted = _extract_group_sizes_from_transform(cat_transform)
+            if extracted is not None:
+                group_sizes = extracted
+            if is_num:
+                X_num = (
+                    X_cat
+                    if X_num is None
+                    else {x: np.hstack([X_num[x], X_cat[x]]) for x in X_num}
+                )
+                X_cat = None
     if group_sizes is None and dataset.X_cat is not None:
         group_sizes = dataset.get_category_size('train')
 
@@ -490,6 +570,7 @@ def transform_dataset(
         y_info=y_info,
         cat_group_sizes=group_sizes,
         cat_columns=dataset.cat_columns,
+        dequantizer=dequantizer,
     )
     dataset.num_transform = num_transform
     dataset.cat_transform = cat_transform

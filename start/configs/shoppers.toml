@@ -13,16 +13,17 @@ cat_nan_policy = "new_category"
 num_nan_policy = "mean"
 normalization = "quantile"
 y_policy = "default"
+int_dequant_dist = "uniform"
 
 [graph]
-type = "block_uniform"
+type = "block_absorb"
 
 [noise]
 type = "loglinear"
 eps = 1e-3
 
 [numeric_noise]
-type = "power_mean"
+type = "power_mean_per_column"
 sigma_min = 0.002
 sigma_max = 80.0
 rho = 7.0
@@ -36,6 +37,7 @@ dim_t = 128
 d_layers = [512, 512, 512]
 dropout = 0.1
 
+
 [optim]
 optimizer = "AdamW"
 lr = 2e-4
@@ -47,7 +49,7 @@ warmup = 500
 grad_clip = 1.0
 
 [train]
-epochs = 8000
+epochs = 500
 grad_accum = 2
 log_every = 50
 eval_every = 500
@@ -63,6 +65,7 @@ steps = 100
 noise_removal = true
 
 [generation]
-checkpoint = "__none__"
-num_samples = 512
-output = "samples/shoppers_samples.csv"
+checkpoint = "start/checkpoints/shoppers/epoch_0353.pt"
+num_samples = 12330
+output = "samples/shoppers_block_absorbing_gen_non.csv"
+numeric_clip = 3.0

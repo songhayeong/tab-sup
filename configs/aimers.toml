@@ -8,8 +8,8 @@ drop_last = false
 
 [transformations]
 seed = 0
-cat_encoding = "one-hot"
-cat_nan_policy = "__none__"
+cat_encoding = "__none__"
+cat_nan_policy = "new_category"
 num_nan_policy = "mean"
 y_policy = "default"
 
@@ -22,13 +22,16 @@ sigma_min = 1e-3
 sigma_max = 1.0
 
 [model]
-type = "mlp"
+type = "resnet"
 is_y_cond = false
-dim_t = 128
+dim_t = 256
 
 [model.rtdl_params]
-d_layers = [512, 512, 512]
-dropout = 0.1
+n_blocks = 6
+d_main = 512
+d_hidden = 1024
+dropout_first = 0.1
+dropout_second = 0.0
 
 [optim]
 optimizer = "AdamW"

@@ -15,7 +15,7 @@ num_nan_policy = "mean"
 y_policy = "default"
 
 [graph]
-type = "block_uniform"
+type = "block_absorb"
 
 [noise]
 type = "geometric"
@@ -42,12 +42,12 @@ warmup = 500
 grad_clip = 1.0
 
 [train]
-epochs = 50
+epochs = 5
 grad_accum = 2
 log_every = 50
 eval_every = 500
 checkpoint_every = 1000
-checkpoint_dir = "start/checkpoints/tab_sedd"
+checkpoint_dir = "start/checkpoints/tab_sedd_uniform"
 ema_decay = 0.999
 seed = 777
 
@@ -59,6 +59,6 @@ steps = 100
 noise_removal = true
 
 [generation]
-checkpoint = "start/checkpoints/tab_sedd/epoch_0048.pt"
+checkpoint = "start/checkpoints/tab_sedd_uniform/epoch_0004.pt"
 num_samples = 126244
-output = "samples/shoppers_samples.csv"
+output = "samples/aimers_uniform_samples.csv"
