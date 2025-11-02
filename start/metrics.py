@@ -4,7 +4,6 @@ import torch
 import pandas as pd
 # Metrics
 from eval.mle.mle import get_evaluator
-from eval.visualize_density import plot_density
 from sdmetrics.reports.single_table import QualityReport, DiagnosticReport
 from sdmetrics.single_table import LogisticDetection
 from sklearn.preprocessing import OneHotEncoder
@@ -248,17 +247,6 @@ class TabMetrics(object):
         }
         return out_metrics, out_extras
 
-    def plot_density(self, syn_data):
-        syn_data_cp = deepcopy(syn_data)
-        real_data = pd.read_csv(self.real_data_path)
-        info = deepcopy(self.info)
-        y_only = len(syn_data_cp.columns) == 1
-        if y_only:
-            target_col_idx = info['target_col_idx'][0]
-            target_col_name = info['column_names'][target_col_idx]
-            syn_data_cp = self.complete_y_only_data(syn_data_cp, real_data, target_col_name)
-        img = plot_density(syn_data_cp, real_data, info)
-        return img
 
     def complete_y_only_data(self, syn_data, real_data, target_col_idx):
         syn_target_col = deepcopy(syn_data.iloc[:, 0])

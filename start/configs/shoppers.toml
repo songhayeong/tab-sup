@@ -67,5 +67,5 @@ noise_removal = true
 [generation]
 checkpoint = "start/checkpoints/shoppers/epoch_0353.pt"
 num_samples = 12330
-output = "samples/shoppers_block_absorbing_gen_non.csv"
-numeric_clip = 3.0
+output = "samples/shoppers_block_absorbing_gen_modi.csv"
+numeric_clip = 2.0

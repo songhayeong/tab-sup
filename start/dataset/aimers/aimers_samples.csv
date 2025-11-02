@@ -1,0 +1,257 @@
+환자 시술 당시 나이,시술 유형,세부 시술 유형,배란 자극 시술 여부,단일 배아 이식 여부,불임 원인 - 난관 질환,불임 원인 - 배란 장애,불임 원인 - 남성 요인,불임 원인 - 자궁내막증,불임 원인 - 불명확,이전 IVF 시술 횟수,이전 DI 시술 횟수,이전 총 임신 횟수,이전 총 임신 성공 횟수,총 생성 배아 수,이식된 배아 수,미세주입(ICSI) 배아 이식 수,저장된 배아 수,해동된 배아 수,해동 난자 사용 여부,채취된 신선 난자 수,신선 난자 사용 여부,수정 시도된 난자 수,난자 출처,정자 출처,난자 기증자 나이,정자 기증자 나이,동결 배아 사용 여부,신선 배아 사용 여부,기증 배아 사용 여부,착상 전 PGD 시행 여부,착상 전 PGS 시행 여부,배아 이식 후 경과일
+만35-37세,IVF,ICSI / BLASTOCYST ,True,False,False,False,True,False,False,0회,0회,nan,0회,1-5,2.0,2.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,0회,0회,11-15,1.0,2.0,0,0,False,31-35,False,21-25,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,4.0
+만18-34세,IVF,IVF,True,False,False,False,True,False,False,2회,0회,1회,1회,0,0.0,0.0,6-10,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만45-50세,IVF,ICSI,False,False,False,False,False,False,False,0회,1회,nan,nan,1-5,2.0,2.0,1-5,0,False,1-5,False,1-5,기증 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI,False,False,False,False,False,False,False,0회,0회,nan,nan,6-10,1.0,1.0,1-5,0,False,0,False,6-10,기증 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI,False,True,False,False,False,False,False,0회,4회,1회,0회,1-5,1.0,1.0,1-5,0,False,0,False,6-10,기증 제공,기증 제공,만31-35세,알 수 없음,False,True,False,False,False,5.0
+만40-42세,IVF,IVF,True,False,False,False,False,False,True,1회,0회,0회,0회,6-10,0.0,0.0,0,0,False,11-15,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,ICSI,True,True,False,False,True,False,False,0회,0회,0회,0회,21-25,1.0,1.0,1-5,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만38-39세,IVF,ICSI,True,False,False,False,True,False,False,2회,0회,nan,0회,6-10,2.0,2.0,1-5,0,False,11-15,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,Unknown,False,False,False,False,True,False,False,2회,0회,0회,0회,0,2.0,0.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만38-39세,IVF,Unknown,False,False,False,False,False,False,True,2회,0회,0회,0회,0,2.0,0.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만18-34세,IVF,IVF,True,False,False,False,False,False,True,2회,0회,nan,0회,11-15,0.0,nan,1-5,0,False,0,False,21-25,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,nan
+만38-39세,IVF,IVF,True,False,False,False,False,False,True,0회,0회,nan,nan,11-15,0.0,nan,0,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만43-44세,IVF,Unknown,False,False,False,False,False,False,True,2회,0회,1회,0회,0,1.0,0.0,0,1-5,False,0,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만35-37세,IVF,Unknown,False,False,False,False,False,False,False,4회,0회,1회,1회,0,0.0,0.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만18-34세,IVF,IVF / BLASTOCYST,True,True,True,False,False,False,False,1회,0회,1회,1회,16-20,1.0,0.0,6-10,0,False,26-30,False,26-30,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,Unknown,False,False,False,False,False,False,True,5회,0회,1회,1회,0,1.0,0.0,1-5,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만35-37세,IVF,Unknown,False,True,False,False,True,False,False,1회,0회,1회,1회,0,1.0,0.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만26-30세,True,False,False,False,False,0.0
+만40-42세,IVF,ICSI,False,False,False,False,False,False,True,4회,0회,0회,0회,0,3.0,2.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,2.0
+만45-50세,IVF,ICSI,False,True,False,False,False,False,False,1회,0회,0회,0회,6-10,1.0,1.0,1-5,0,False,0,False,11-15,기증 제공,기증 제공,만26-30세,만21-25세,False,True,True,False,False,5.0
+만35-37세,IVF,IVF,True,False,True,False,False,False,False,1회,0회,1회,1회,1-5,2.0,0.0,0,0,False,1-5,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만45-50세,IVF,ICSI,False,False,False,False,False,False,False,4회,0회,1회,0회,0,1.0,2.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만38-39세,IVF,ICSI,True,False,False,False,False,False,True,6회 이상,0회,0회,0회,1-5,1.0,2.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만35-37세,IVF,IVF,True,False,False,False,False,False,True,4회,0회,1회,1회,11-15,2.0,0.0,1-5,0,False,16-20,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,IVF,True,False,False,False,False,False,True,6회 이상,0회,nan,0회,6-10,3.0,3.0,0,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI:ICSI,True,False,False,False,True,False,False,1회,0회,0회,0회,11-15,0.0,0.0,6-10,0,False,11-15,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만40-42세,IVF,ICSI,True,False,False,False,False,False,True,3회,0회,1회,1회,1-5,3.0,2.0,0,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만18-34세,IVF,ICSI,False,False,False,False,True,False,False,0회,0회,nan,nan,1-5,1.0,2.0,1-5,0,False,0,False,11-15,기증 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,IVF,False,False,False,False,False,False,False,2회,2회,0회,0회,0,0.0,0.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만21-25세,True,False,False,False,False,nan
+만40-42세,IVF,ICSI,True,False,False,False,False,False,True,0회,0회,0회,0회,1-5,3.0,1.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,ICSI,False,False,False,False,False,False,False,0회,0회,0회,0회,1-5,0.0,0.0,0,0,False,1-5,False,1-5,기증 제공,기증 제공,만31-35세,알 수 없음,False,True,False,False,False,nan
+만35-37세,IVF,IVF / BLASTOCYST,True,True,False,False,True,False,False,3회,0회,0회,0회,6-10,1.0,0.0,1-5,0,False,11-15,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만40-42세,IVF,ICSI,False,False,False,False,False,False,False,0회,0회,0회,0회,1-5,2.0,2.0,1-5,0,False,0,False,1-5,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,nan
+만45-50세,IVF,IVF,True,False,False,False,False,False,False,0회,2회,nan,nan,1-5,1.0,0.0,1-5,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,만41-45세,False,True,False,False,False,2.0
+만38-39세,IVF,IVF,True,False,False,False,False,False,False,0회,0회,0회,0회,6-10,2.0,0.0,1-5,0,False,16-20,False,16-20,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만18-34세,IVF,IVF,True,True,False,False,True,False,False,1회,0회,1회,0회,6-10,1.0,0.0,0,0,False,0,False,11-15,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만38-39세,IVF,Unknown,False,False,False,False,False,False,False,1회,2회,0회,0회,0,1.0,nan,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만21-25세,True,False,False,False,False,2.0
+만35-37세,IVF,IVF,True,False,False,False,False,False,False,2회,3회,0회,0회,11-15,1.0,0.0,1-5,0,False,11-15,False,11-15,본인 제공,기증 제공,알 수 없음,만21-25세,False,True,False,False,False,2.0
+만18-34세,IVF,ICSI,True,True,False,True,False,False,False,0회,0회,nan,nan,16-20,1.0,nan,1-5,0,False,31-35,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만40-42세,IVF,ICSI,True,False,False,False,True,False,False,6회 이상,0회,2회,1회,11-15,2.0,2.0,0,0,False,1-5,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,IVF,True,False,False,False,False,False,True,0회,0회,1회,0회,16-20,0.0,0.0,1-5,0,False,6-10,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만38-39세,IVF,IVF,False,False,False,False,False,False,False,4회,3회,1회,1회,>30,2.0,0.0,0,0,False,0,False,16-20,기증 제공,기증 제공,만21-25세,만36-40세,False,True,False,False,False,3.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,6회 이상,0회,nan,1회,11-15,2.0,1.0,1-5,0,False,0,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,0회,0회,1-5,1.0,1.0,1-5,0,False,6-10,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만40-42세,IVF,ICSI / BLASTOCYST ,False,False,False,False,False,False,False,2회,0회,1회,2회,0,2.0,2.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,알 수 없음,True,False,False,False,False,3.0
+만38-39세,IVF,ICSI,True,True,False,False,False,False,False,1회,0회,0회,0회,6-10,1.0,1.0,1-5,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만43-44세,IVF,Unknown,False,True,False,False,False,False,True,6회 이상,0회,2회,1회,0,1.0,0.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만40-42세,IVF,IVF,True,True,False,False,True,False,False,0회,3회,0회,0회,11-15,1.0,0.0,1-5,0,False,16-20,False,16-20,본인 제공,기증 제공,알 수 없음,만26-30세,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI,True,False,False,False,False,False,False,0회,0회,0회,0회,0,0.0,0.0,0,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,만26-30세,False,True,False,False,False,nan
+만45-50세,IVF,IVF,True,False,False,False,False,False,True,3회,0회,0회,0회,1-5,3.0,0.0,0,0,False,0,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만38-39세,IVF,IVF,False,False,False,False,False,False,False,1회,0회,0회,0회,1-5,1.0,0.0,0,0,False,0,False,6-10,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,5.0
+만43-44세,IVF,Unknown,False,True,False,False,False,False,False,3회,0회,0회,0회,0,1.0,0.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,만26-30세,알 수 없음,True,False,False,False,False,2.0
+만43-44세,IVF,IVF,True,False,False,False,False,False,False,0회,0회,nan,0회,1-5,0.0,0.0,1-5,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,만21-25세,False,True,False,False,False,3.0
+만18-34세,DI,DI,True,True,False,False,False,False,False,0회,0회,0회,1회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만31-35세,True,True,True,False,False,nan
+만43-44세,IVF,Unknown,False,False,False,False,False,False,True,4회,0회,0회,1회,0,2.0,0.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만35-37세,IVF,Unknown,False,False,False,False,True,False,False,1회,0회,nan,1회,0,2.0,nan,0,6-10,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,2.0
+만40-42세,IVF,ICSI:IVF,False,False,False,False,False,False,True,6회 이상,0회,2회,0회,21-25,0.0,0.0,0,6-10,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만35-37세,IVF,IVF,True,True,False,False,False,False,True,3회,0회,0회,0회,6-10,1.0,0.0,0,0,False,11-15,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만38-39세,IVF,ICSI,True,False,False,False,True,False,False,3회,0회,0회,0회,6-10,3.0,2.0,0,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만43-44세,IVF,ICSI,True,False,False,False,False,False,False,0회,4회,0회,0회,1-5,3.0,2.0,0,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,만31-35세,False,True,False,False,False,nan
+만18-34세,IVF,ICSI,True,False,False,False,False,False,False,0회,0회,0회,0회,6-10,2.0,3.0,0,0,False,16-20,False,6-10,본인 제공,기증 제공,알 수 없음,만26-30세,False,True,False,False,False,nan
+만18-34세,DI,DI,False,True,False,False,False,False,False,0회,3회,0회,0회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만36-40세,True,True,True,False,False,nan
+만35-37세,IVF,IVF,True,False,True,False,False,False,False,2회,0회,nan,2회,6-10,2.0,0.0,0,0,False,16-20,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만40-42세,IVF,IVF,False,False,False,False,False,False,False,1회,0회,1회,0회,1-5,3.0,0.0,0,0,False,0,False,1-5,기증 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만43-44세,IVF,ICSI,False,False,False,False,False,False,False,0회,0회,0회,0회,6-10,2.0,2.0,0,0,False,0,False,6-10,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,2.0
+만18-34세,DI,DI,False,True,False,False,False,False,False,0회,3회,0회,0회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만31-35세,True,True,True,False,False,nan
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,5회,0회,0회,0회,1-5,2.0,2.0,0,0,False,1-5,False,1-5,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,3.0
+만45-50세,IVF,Unknown,False,True,False,False,False,False,False,0회,0회,0회,0회,0,1.0,1.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만21-25세,True,False,False,False,False,3.0
+만40-42세,IVF,ICSI,False,False,False,False,True,False,False,5회,0회,1회,1회,1-5,1.0,2.0,0,0,False,0,False,1-5,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,Unknown,False,False,False,False,False,False,False,6회 이상,0회,2회,2회,0,1.0,0.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,만26-30세,알 수 없음,True,False,False,False,False,0.0
+만18-34세,IVF,Unknown,False,True,False,False,False,False,False,3회,0회,1회,1회,0,1.0,nan,0,1-5,False,0,False,0,기증 제공,배우자 제공,만26-30세,알 수 없음,True,False,False,False,False,0.0
+만18-34세,IVF,ICSI:IVF,True,False,False,False,False,False,True,1회,0회,0회,0회,6-10,2.0,1.0,6-10,0,False,16-20,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만38-39세,IVF,IVF,False,False,True,False,False,False,False,1회,0회,1회,1회,0,2.0,0.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,1회,0회,1회,1회,6-10,2.0,2.0,0,0,False,16-20,False,11-15,본인 제공,기증 제공,알 수 없음,만31-35세,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI,True,True,False,False,True,False,False,0회,0회,1회,1회,21-25,1.0,1.0,0,0,False,11-15,False,11-15,본인 제공,기증 제공,알 수 없음,만21-25세,False,True,False,False,False,3.0
+만18-34세,IVF,ICSI / AH,True,False,False,False,True,False,False,6회 이상,0회,1회,1회,11-15,0.0,0.0,0,0,False,16-20,False,21-25,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만43-44세,IVF,IVF,False,False,False,False,False,False,True,3회,0회,0회,0회,0,1.0,0.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,2회,0회,2회,0회,1-5,2.0,2.0,0,0,False,6-10,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만38-39세,IVF,ICSI,False,False,False,False,False,False,True,0회,0회,nan,nan,0,0.0,0.0,0,1-5,False,0,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만18-34세,IVF,ICSI,True,False,False,False,False,False,False,0회,1회,nan,nan,16-20,2.0,2.0,1-5,0,False,21-25,False,16-20,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만38-39세,IVF,Unknown,False,False,False,False,False,False,True,3회,0회,1회,2회,0,1.0,nan,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만40-42세,IVF,ICSI / AH,True,False,False,False,True,False,False,1회,0회,nan,0회,1-5,1.0,1.0,0,0,False,6-10,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,IVF,True,False,False,True,False,False,False,1회,0회,1회,1회,0,0.0,0.0,0,0,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만45-50세,IVF,ICSI,False,False,False,False,True,False,False,3회,0회,1회,0회,1-5,2.0,2.0,0,0,False,0,False,6-10,기증 제공,배우자 제공,만26-30세,알 수 없음,False,True,False,False,False,5.0
+만18-34세,DI,DI,True,True,False,False,False,False,False,0회,0회,nan,nan,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만41-45세,True,True,True,False,False,nan
+만18-34세,DI,DI,True,True,False,False,False,False,False,0회,0회,nan,nan,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만31-35세,True,True,True,False,False,nan
+만38-39세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,0회,0회,1-5,2.0,2.0,0,0,False,6-10,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만38-39세,IVF,ICSI / AH,False,False,False,False,False,False,False,4회,4회,1회,1회,0,2.0,1.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만26-30세,True,False,False,False,False,0.0
+만40-42세,IVF,Unknown,False,True,False,False,False,False,False,3회,0회,1회,1회,0,nan,nan,nan,1-5,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만26-30세,True,False,True,False,False,0.0
+만40-42세,IVF,ICSI,True,False,False,False,True,False,False,4회,0회,0회,0회,16-20,3.0,3.0,0,0,False,0,False,6-10,기증 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,ICSI,True,True,False,False,True,False,False,2회,0회,nan,0회,1-5,1.0,1.0,1-5,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,IVF,False,True,False,False,False,False,False,3회,6회 이상,1회,2회,1-5,1.0,0.0,1-5,0,False,0,False,6-10,기증 제공,기증 제공,만31-35세,만36-40세,False,True,True,False,False,5.0
+만40-42세,IVF,IVF,False,False,False,False,False,False,False,0회,4회,0회,0회,6-10,1.0,0.0,1-5,0,False,0,False,6-10,기증 제공,기증 제공,만31-35세,만36-40세,False,True,True,False,False,5.0
+만40-42세,IVF,ICSI,True,False,False,False,True,False,False,5회,0회,2회,1회,1-5,2.0,2.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만18-34세,IVF,ICSI:IVF,True,False,False,False,True,False,False,0회,0회,0회,0회,11-15,2.0,2.0,1-5,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만40-42세,IVF,ICSI,True,True,False,False,False,False,True,1회,0회,0회,0회,11-15,1.0,1.0,1-5,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,IVF,True,False,False,False,True,False,False,0회,0회,nan,nan,6-10,1.0,nan,0,0,False,11-15,False,11-15,본인 제공,기증 제공,알 수 없음,만26-30세,False,True,False,False,False,3.0
+만18-34세,IVF,IVF,True,False,False,False,False,False,False,0회,0회,nan,nan,6-10,2.0,nan,1-5,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,만26-30세,False,True,False,False,False,5.0
+만38-39세,IVF,ICSI,False,False,False,False,False,False,False,3회,0회,1회,1회,6-10,2.0,2.0,1-5,0,False,0,False,6-10,기증 제공,배우자 제공,만26-30세,알 수 없음,False,True,False,False,False,5.0
+만18-34세,DI,DI,False,True,False,False,True,False,False,0회,0회,nan,nan,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만36-40세,True,True,True,False,False,nan
+만35-37세,IVF,ICSI,True,False,False,False,False,False,False,2회,0회,0회,0회,6-10,2.0,2.0,0,0,False,6-10,False,11-15,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI / BLASTOCYST ,True,True,False,False,False,False,True,2회,0회,0회,0회,6-10,1.0,1.0,1-5,0,False,11-15,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,IVF,True,False,False,False,True,False,False,2회,0회,1회,1회,0,0.0,0.0,0,0,False,16-20,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만35-37세,IVF,ICSI,True,False,False,False,False,False,True,0회,0회,0회,0회,1-5,1.0,1.0,0,0,False,11-15,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만18-34세,IVF,IVF,True,False,False,False,True,False,False,1회,0회,0회,0회,11-15,2.0,0.0,6-10,0,False,16-20,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만40-42세,IVF,ICSI,True,False,False,False,True,False,False,2회,0회,2회,1회,1-5,1.0,0.0,1-5,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만40-42세,IVF,IVF,True,False,True,False,False,False,False,0회,0회,nan,nan,16-20,2.0,0.0,6-10,0,False,6-10,False,26-30,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만35-37세,IVF,ICSI,True,False,False,False,False,False,False,6회 이상,0회,nan,0회,11-15,1.0,2.0,1-5,0,False,31-35,False,31-35,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI:IVF,True,False,False,False,True,False,False,0회,0회,0회,0회,6-10,2.0,1.0,0,0,False,11-15,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI,True,True,False,True,True,False,False,0회,0회,0회,0회,11-15,1.0,1.0,1-5,0,False,26-30,False,21-25,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만38-39세,IVF,ICSI,False,True,False,False,True,False,False,1회,0회,0회,0회,1-5,1.0,1.0,6-10,0,False,0,False,6-10,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,5회,0회,2회,nan,0,0.0,0.0,0,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만35-37세,IVF,ICSI,True,False,False,False,False,False,True,3회,0회,1회,1회,1-5,0.0,1.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,만26-30세,False,True,False,False,False,nan
+만35-37세,IVF,ICSI,True,False,False,False,False,False,False,1회,2회,0회,0회,16-20,1.0,1.0,>20,0,False,26-30,False,21-25,본인 제공,기증 제공,알 수 없음,만21-25세,False,True,False,False,False,5.0
+만43-44세,IVF,Unknown,False,False,False,False,False,False,True,2회,0회,nan,0회,0,1.0,nan,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만38-39세,DI,DI,False,True,False,False,False,False,False,1회,1회,1회,1회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만31-35세,True,True,True,False,False,nan
+만18-34세,IVF,ICSI,True,True,False,False,True,False,False,1회,0회,1회,1회,1-5,1.0,1.0,1-5,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만35-37세,IVF,IVF / BLASTOCYST,False,False,False,False,False,False,True,4회,0회,1회,1회,0,2.0,0.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만38-39세,IVF,IVF,True,False,False,False,True,False,False,0회,0회,nan,0회,11-15,0.0,0.0,1-5,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만35-37세,DI,DI,False,True,False,False,False,False,False,1회,0회,0회,0회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만36-40세,True,True,True,False,False,nan
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,2회,0회,0회,0회,6-10,2.0,2.0,1-5,0,False,21-25,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만43-44세,IVF,ICSI,False,False,False,False,False,False,False,1회,0회,2회,1회,0,1.0,1.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만31-35세,True,False,False,False,False,0.0
+만35-37세,DI,DI,False,True,False,False,False,False,False,0회,0회,1회,nan,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만36-40세,True,True,True,False,False,nan
+만40-42세,IVF,ICSI,True,False,False,False,True,False,False,2회,0회,1회,1회,1-5,2.0,1.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만38-39세,IVF,ICSI,True,False,False,False,True,False,False,3회,0회,0회,0회,6-10,1.0,2.0,0,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만40-42세,IVF,Unknown,False,False,False,False,False,False,False,2회,0회,2회,1회,0,1.0,nan,0,1-5,False,0,False,0,기증 제공,기증 제공,알 수 없음,>45,True,False,False,False,False,0.0
+만43-44세,IVF,ICSI,False,False,False,False,False,False,False,5회,0회,1회,1회,6-10,2.0,2.0,1-5,0,False,0,False,11-15,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI:ICSI,False,False,False,False,True,False,False,3회,0회,0회,0회,0,0.0,0.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만18-34세,IVF,IVF,True,False,False,False,False,False,False,1회,0회,1회,0회,6-10,2.0,0.0,1-5,0,False,11-15,False,11-15,본인 제공,기증 제공,알 수 없음,만26-30세,False,True,False,False,False,2.0
+만18-34세,IVF,ICSI,True,False,False,False,False,False,False,1회,3회,0회,0회,1-5,2.0,2.0,1-5,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,만31-35세,False,True,False,False,False,3.0
+만18-34세,IVF,IVF / BLASTOCYST,True,False,False,False,False,False,True,0회,0회,0회,0회,16-20,0.0,0.0,6-10,0,False,21-25,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,IVF,True,False,True,False,False,True,False,1회,0회,0회,nan,6-10,2.0,0.0,0,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만40-42세,DI,DI,False,True,False,False,True,False,False,0회,6회 이상,1회,1회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만36-40세,True,True,True,False,False,nan
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,0회,0회,6-10,2.0,2.0,1-5,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,만26-30세,False,True,False,False,False,2.0
+만38-39세,IVF,IVF:ICSI,True,False,False,False,True,False,False,0회,0회,0회,nan,21-25,0.0,0.0,16-20,0,False,36-40,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만35-37세,IVF,IVF,True,True,False,True,False,False,False,0회,0회,nan,nan,1-5,1.0,nan,1-5,0,False,11-15,False,6-10,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만40-42세,IVF,ICSI,False,False,False,False,True,False,False,6회 이상,0회,1회,0회,0,1.0,1.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만38-39세,IVF,Unknown,False,False,False,False,True,False,False,2회,0회,0회,0회,0,3.0,0.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만18-34세,IVF,IVF / BLASTOCYST,True,False,False,False,True,False,False,0회,0회,0회,0회,11-15,1.0,0.0,0,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,IVF,True,True,False,False,True,False,False,0회,0회,0회,0회,11-15,1.0,nan,1-5,0,False,11-15,False,11-15,본인 제공,기증 제공,알 수 없음,만26-30세,False,True,False,False,False,5.0
+만38-39세,IVF,IVF,True,False,False,False,False,False,False,0회,4회,nan,0회,1-5,2.0,2.0,0,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,만21-25세,False,True,False,False,False,2.0
+만38-39세,IVF,ICSI,True,False,False,True,False,False,False,0회,0회,nan,nan,16-20,2.0,2.0,1-5,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만43-44세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,nan,nan,1-5,2.0,1.0,0,0,False,11-15,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만43-44세,IVF,IVF,True,False,False,False,False,False,False,0회,0회,nan,nan,1-5,2.0,nan,0,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만40-42세,IVF,ICSI,True,False,False,False,False,False,False,0회,0회,1회,nan,1-5,2.0,2.0,0,0,False,6-10,False,11-15,본인 제공,기증 제공,알 수 없음,만41-45세,False,True,False,False,False,3.0
+만35-37세,IVF,IVF,False,True,False,False,False,False,False,6회 이상,0회,0회,0회,6-10,1.0,nan,11-15,0,False,0,False,16-20,기증 제공,기증 제공,만21-25세,만41-45세,False,True,True,False,False,5.0
+만18-34세,IVF,Unknown,False,False,False,False,False,False,True,1회,0회,2회,1회,0,2.0,nan,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,4.0
+만38-39세,IVF,Unknown,False,False,False,False,False,False,True,4회,0회,0회,0회,0,2.0,nan,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만18-34세,IVF,IVF,True,True,False,False,True,False,False,1회,3회,0회,0회,6-10,1.0,0.0,1-5,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만45-50세,IVF,Unknown,False,True,False,False,False,False,False,4회,0회,2회,1회,0,1.0,nan,0,1-5,False,0,False,0,기증 제공,기증 제공,만31-35세,만36-40세,True,False,True,False,False,0.0
+만40-42세,IVF,ICSI,True,False,False,False,True,False,False,3회,0회,1회,1회,6-10,2.0,2.0,0,0,False,11-15,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만18-34세,IVF,ICSI,False,False,False,False,True,False,False,6회 이상,0회,0회,0회,1-5,1.0,0.0,0,0,False,0,False,1-5,기증 제공,배우자 제공,만26-30세,알 수 없음,False,True,False,False,False,nan
+만43-44세,IVF,Unknown,False,False,False,False,False,False,False,2회,0회,2회,1회,>30,0.0,nan,0,0,False,0,False,>40,기증 제공,기증 제공,만26-30세,알 수 없음,True,True,False,False,False,nan
+만18-34세,IVF,IVF,True,True,False,True,False,False,False,0회,0회,0회,0회,11-15,1.0,0.0,0,0,False,16-20,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만35-37세,DI,DI,False,True,False,False,False,False,False,0회,0회,nan,0회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만26-30세,True,True,True,False,False,nan
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,6회 이상,0회,nan,0회,11-15,2.0,2.0,0,0,False,6-10,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만18-34세,IVF,IVF,True,False,False,False,False,False,False,0회,0회,0회,0회,11-15,3.0,0.0,0,0,False,16-20,False,16-20,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만18-34세,IVF,IVF,True,True,True,False,False,False,False,0회,0회,0회,0회,11-15,1.0,0.0,1-5,0,False,11-15,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI,True,False,False,False,False,False,False,3회,0회,0회,nan,1-5,2.0,2.0,0,0,False,6-10,False,1-5,본인 제공,기증 제공,알 수 없음,만26-30세,False,True,False,False,False,4.0
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,3회,0회,1회,0회,6-10,2.0,2.0,1-5,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만38-39세,IVF,ICSI:IVF,True,False,False,False,False,False,True,4회,0회,nan,0회,11-15,0.0,1.0,11-15,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,IVF,True,False,False,False,False,False,False,0회,5회,0회,0회,1-5,2.0,0.0,0,0,False,16-20,False,16-20,본인 제공,기증 제공,알 수 없음,만21-25세,False,True,False,False,False,3.0
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,4회,0회,0회,1회,6-10,1.0,1.0,1-5,0,False,11-15,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만40-42세,IVF,Unknown,False,True,False,False,False,False,False,3회,0회,nan,0회,0,1.0,nan,0,1-5,False,0,False,0,기증 제공,기증 제공,알 수 없음,만20세 이하,True,False,False,False,False,0.0
+만35-37세,IVF,ICSI,True,False,False,False,False,False,True,2회,0회,1회,1회,6-10,2.0,2.0,1-5,0,False,11-15,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만43-44세,IVF,ICSI,True,False,False,False,True,False,False,4회,0회,1회,1회,1-5,2.0,2.0,0,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,만31-35세,False,True,False,False,False,nan
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,0회,0회,6-10,2.0,2.0,0,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만35-37세,IVF,Unknown,False,False,False,False,False,False,True,2회,0회,nan,0회,0,2.0,0.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만35-37세,IVF,Unknown,False,True,False,False,False,False,False,2회,6회 이상,nan,1회,0,1.0,0.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만26-30세,True,False,False,False,False,0.0
+만18-34세,IVF,ICSI:IVF,True,False,False,False,True,False,False,0회,0회,0회,0회,21-25,0.0,0.0,6-10,0,False,21-25,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만45-50세,IVF,IVF,False,False,False,False,False,False,False,0회,0회,nan,nan,0,2.0,nan,0,1-5,False,11-15,False,11-15,기증 제공,배우자 제공,알 수 없음,알 수 없음,True,True,False,False,False,3.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,6회 이상,0회,nan,1회,6-10,2.0,2.0,0,0,False,11-15,False,6-10,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만45-50세,IVF,IVF,True,False,False,False,False,False,True,1회,0회,1회,0회,1-5,0.0,0.0,0,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만18-34세,IVF,ICSI,False,False,False,False,False,False,False,4회,0회,1회,1회,1-5,2.0,2.0,0,0,False,0,False,1-5,기증 제공,기증 제공,만31-35세,알 수 없음,False,True,False,False,False,2.0
+만40-42세,IVF,ICSI,True,False,False,False,False,False,True,1회,0회,0회,0회,1-5,3.0,3.0,0,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만35-37세,IVF,IVF,False,False,False,False,True,False,False,4회,2회,0회,0회,0,1.0,1.0,0,1-5,False,0,False,0,기증 제공,기증 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만40-42세,IVF,IVF,True,False,False,False,False,False,True,2회,0회,1회,0회,1-5,0.0,0.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,3회,0회,nan,1회,1-5,0.0,0.0,1-5,0,False,11-15,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만40-42세,IVF,ICSI,True,False,False,False,True,False,False,6회 이상,0회,1회,1회,6-10,0.0,0.0,0,0,False,16-20,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만40-42세,IVF,IVF,False,False,False,False,True,False,False,6회 이상,0회,2회,0회,1-5,2.0,0.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만35-37세,IVF,IVF,True,True,False,False,False,True,False,0회,0회,nan,nan,11-15,1.0,nan,0,0,False,31-35,False,21-25,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만38-39세,IVF,Unknown,False,False,False,False,True,False,False,6회 이상,0회,1회,1회,0,1.0,nan,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만43-44세,DI,DI,True,True,False,False,False,False,False,2회,1회,0회,1회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만26-30세,True,True,True,False,False,nan
+만40-42세,IVF,ICSI,False,False,False,False,True,False,False,1회,0회,nan,0회,0,2.0,2.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,1.0
+만35-37세,IVF,Unknown,False,False,False,False,False,False,True,2회,0회,nan,nan,0,2.0,nan,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만18-34세,IVF,IVF,True,False,False,True,False,False,False,3회,0회,0회,0회,16-20,1.0,nan,>20,0,False,21-25,False,21-25,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,4.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,1회,0회,0회,0회,1-5,2.0,2.0,0,0,False,0,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만40-42세,IVF,ICSI,True,False,False,False,False,False,False,1회,6회 이상,1회,1회,6-10,2.0,2.0,0,0,False,11-15,False,6-10,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만45-50세,IVF,ICSI,True,False,False,False,False,False,False,5회,0회,1회,1회,1-5,1.0,1.0,0,0,False,6-10,False,1-5,본인 제공,기증 제공,알 수 없음,만31-35세,False,True,False,False,False,4.0
+만18-34세,DI,DI,False,True,False,False,False,False,False,0회,1회,1회,1회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,만36-40세,만26-30세,True,True,True,False,False,nan
+만18-34세,IVF,Unknown,False,False,False,False,True,False,False,2회,4회,1회,0회,0,2.0,0.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,>45,True,False,False,False,False,0.0
+만18-34세,IVF,IVF,True,False,False,False,False,False,True,0회,0회,nan,nan,16-20,0.0,0.0,11-15,0,False,26-30,False,21-25,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만43-44세,IVF,ICSI,False,True,False,False,True,False,False,2회,0회,1회,1회,1-5,1.0,1.0,0,0,False,0,False,16-20,기증 제공,배우자 제공,만36-40세,알 수 없음,False,True,False,False,False,0.0
+만43-44세,IVF,IVF,True,False,True,False,False,False,False,1회,0회,0회,0회,1-5,1.0,0.0,0,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI:IVF,True,False,False,False,True,False,False,0회,0회,0회,0회,11-15,0.0,2.0,6-10,0,False,21-25,False,21-25,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,Unknown,False,True,False,False,True,False,False,6회 이상,0회,2회,0회,0,1.0,1.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,만26-30세,알 수 없음,True,False,False,False,False,0.0
+만18-34세,IVF,IVF,True,True,False,True,False,False,False,0회,0회,0회,0회,16-20,1.0,0.0,6-10,0,False,21-25,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,4.0
+만35-37세,IVF,Unknown,False,False,False,False,True,False,False,2회,0회,1회,1회,0,2.0,nan,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,1.0
+만18-34세,IVF,Unknown,False,False,False,False,True,False,False,2회,0회,1회,0회,0,2.0,0.0,0,1-5,False,0,False,0,기증 제공,기증 제공,알 수 없음,만21-25세,True,False,False,False,False,0.0
+만38-39세,IVF,ICSI,True,False,False,False,True,False,False,5회,0회,1회,1회,6-10,2.0,2.0,0,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만18-34세,IVF,ICSI,False,False,False,False,False,False,False,0회,0회,nan,nan,11-15,1.0,0.0,1-5,0,False,0,False,11-15,기증 제공,배우자 제공,만36-40세,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,Unknown,False,False,False,False,False,False,False,3회,0회,1회,1회,0,1.0,0.0,0,1-5,False,0,False,0,기증 제공,기증 제공,만31-35세,>45,True,False,True,False,False,0.0
+만35-37세,IVF,IVF,True,True,False,False,False,False,False,1회,0회,0회,nan,1-5,1.0,0.0,0,0,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,만41-45세,False,True,False,False,False,3.0
+만38-39세,IVF,ICSI,True,True,False,False,True,False,False,0회,0회,nan,0회,1-5,1.0,1.0,0,0,False,6-10,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,IVF,True,False,False,True,False,False,False,0회,0회,nan,nan,0,0.0,0.0,0,0,False,1-5,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,Unknown,False,True,False,False,True,False,False,3회,0회,1회,1회,0,1.0,0.0,1-5,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만18-34세,IVF,ICSI,True,True,False,False,True,False,False,0회,0회,1회,1회,1-5,1.0,1.0,11-15,0,False,21-25,False,21-25,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만45-50세,IVF,IVF,False,False,False,False,False,False,False,4회,0회,0회,0회,1-5,2.0,0.0,0,0,False,0,False,6-10,기증 제공,배우자 제공,만26-30세,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,0회,0회,1-5,2.0,2.0,1-5,0,False,26-30,False,>40,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,IVF,False,False,False,False,False,False,False,5회,0회,0회,0회,0,2.0,nan,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,알 수 없음,True,False,False,False,False,4.0
+만38-39세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,nan,0회,1-5,2.0,2.0,0,0,False,6-10,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만40-42세,IVF,IVF,True,False,False,False,False,False,True,0회,0회,1회,1회,6-10,1.0,0.0,1-5,0,False,6-10,False,6-10,기증 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,6.0
+만18-34세,IVF,Unknown,False,False,False,False,False,False,False,6회 이상,2회,0회,0회,0,2.0,nan,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만31-35세,True,False,False,False,False,0.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,0회,0회,nan,nan,1-5,2.0,2.0,0,0,False,11-15,False,1-5,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만18-34세,IVF,ICSI,True,False,False,False,False,False,False,2회,4회,1회,0회,6-10,2.0,2.0,1-5,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,만31-35세,False,True,False,False,False,5.0
+만43-44세,IVF,ICSI,False,False,False,False,False,False,False,2회,0회,0회,0회,1-5,2.0,2.0,0,0,False,0,False,11-15,기증 제공,기증 제공,만21-25세,만31-35세,False,True,True,False,False,5.0
+만40-42세,DI,DI,True,True,False,False,False,False,False,0회,2회,0회,0회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만31-35세,True,True,True,False,False,nan
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,6회 이상,0회,1회,1회,6-10,2.0,2.0,0,0,False,21-25,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,4.0
+만18-34세,DI,DI,False,True,False,False,False,False,False,1회,0회,1회,1회,0,1.0,nan,nan,1-5,False,nan,False,0,알 수 없음,미할당,알 수 없음,알 수 없음,True,False,True,False,False,nan
+만43-44세,IVF,Unknown,False,False,False,False,False,False,True,4회,0회,1회,0회,0,2.0,0.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만18-34세,IVF,ICSI,True,True,False,False,True,False,False,0회,0회,1회,6회 이상,6-10,1.0,1.0,0,0,False,26-30,False,16-20,본인 제공,기증 제공,알 수 없음,만41-45세,False,True,False,False,False,5.0
+만45-50세,IVF,IVF / AH:ICSI / AH,False,False,False,False,False,False,False,6회 이상,0회,0회,0회,0,2.0,2.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만40-42세,IVF,IVF,True,False,False,False,True,False,False,0회,0회,0회,0회,1-5,1.0,0.0,0,0,False,6-10,False,6-10,본인 제공,기증 제공,알 수 없음,만21-25세,False,True,False,False,False,2.0
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,4회,0회,0회,0회,16-20,2.0,2.0,0,0,False,21-25,False,16-20,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,1회,0회,nan,0회,6-10,2.0,2.0,1-5,0,False,11-15,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI,False,False,False,False,False,False,False,1회,1회,0회,0회,11-15,0.0,2.0,6-10,0,False,0,False,1-5,기증 제공,기증 제공,만26-30세,만41-45세,False,True,True,False,False,nan
+만18-34세,IVF,IVF,True,False,False,False,False,False,True,6회 이상,0회,1회,0회,11-15,2.0,0.0,6-10,0,False,31-35,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,2.0
+만35-37세,IVF,Unknown,False,False,False,True,False,False,False,0회,0회,0회,2회,0,1.0,0.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,0.0
+만35-37세,IVF,IVF / BLASTOCYST,True,True,False,False,True,False,False,0회,0회,0회,0회,1-5,0.0,0.0,11-15,0,False,26-30,False,36-40,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만18-34세,IVF,Unknown,False,False,False,False,True,False,False,1회,2회,0회,0회,0,0.0,0.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만31-35세,True,False,False,False,False,0.0
+만43-44세,IVF,ICSI,False,False,False,False,False,False,False,4회,0회,0회,nan,6-10,2.0,2.0,1-5,0,False,0,False,11-15,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,ICSI,True,True,False,False,True,False,False,3회,0회,0회,0회,1-5,1.0,1.0,0,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만40-42세,IVF,IVF,True,False,False,False,False,False,True,1회,0회,nan,1회,0,3.0,nan,0,0,False,6-10,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,ICSI,True,False,False,False,True,False,False,2회,0회,nan,0회,16-20,1.0,1.0,1-5,0,False,26-30,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,5.0
+만43-44세,IVF,ICSI,False,False,False,False,False,False,False,3회,0회,1회,0회,0,2.0,0.0,0,0,False,0,False,1-5,기증 제공,배우자 제공,만31-35세,알 수 없음,False,True,False,False,False,nan
+만45-50세,IVF,Unknown,False,False,False,False,False,False,True,3회,0회,nan,0회,0,2.0,nan,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,nan
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,2회,0회,0회,1회,11-15,2.0,2.0,6-10,0,False,16-20,False,16-20,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,ICSI,True,True,False,False,True,False,False,0회,0회,nan,nan,6-10,1.0,1.0,6-10,0,False,16-20,False,6-10,본인 제공,기증 제공,알 수 없음,만41-45세,False,True,False,False,False,5.0
+만35-37세,IVF,ICSI,True,False,False,False,True,False,False,4회,0회,1회,1회,6-10,1.0,1.0,0,0,False,11-15,False,6-10,본인 제공,기증 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만18-34세,IVF,Unknown,False,True,False,False,False,False,False,3회,0회,0회,nan,0,1.0,0.0,0,1-5,False,0,False,0,기증 제공,기증 제공,만21-25세,만31-35세,True,False,False,False,False,0.0
+만35-37세,IVF,ICSI,False,False,False,False,True,False,False,6회 이상,1회,1회,1회,0,1.0,1.0,0,1-5,False,0,False,0,기증 제공,기증 제공,만31-35세,만41-45세,True,False,True,False,False,0.0
+만40-42세,IVF,ICSI / BLASTOCYST ,True,False,False,False,True,False,False,1회,0회,0회,0회,1-5,2.0,0.0,0,0,False,11-15,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만18-34세,IVF,ICSI:ICSI,True,False,False,False,True,False,False,1회,0회,1회,1회,6-10,1.0,2.0,6-10,0,False,21-25,False,11-15,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,3.0
+만35-37세,IVF,ICSI,True,True,False,False,True,False,False,0회,1회,0회,0회,1-5,1.0,1.0,0,0,False,6-10,False,1-5,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,5.0
+만18-34세,DI,DI,False,True,False,False,False,False,False,0회,0회,nan,nan,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만21-25세,True,True,True,False,False,nan
+만45-50세,IVF,Unknown,False,False,False,False,False,False,False,1회,0회,0회,0회,0,2.0,0.0,0,1-5,False,0,False,0,기증 제공,배우자 제공,만31-35세,알 수 없음,True,False,False,False,False,1.0
+만40-42세,IVF,IVF,False,True,False,False,False,False,False,3회,0회,0회,nan,16-20,1.0,0.0,0,0,False,0,False,1-5,기증 제공,배우자 제공,만26-30세,알 수 없음,False,True,False,False,False,5.0
+만18-34세,IVF,Unknown,False,True,False,False,False,False,False,6회 이상,0회,0회,0회,0,1.0,0.0,0,1-5,False,0,False,0,기증 제공,기증 제공,만26-30세,만41-45세,True,False,True,False,False,0.0
+만38-39세,IVF,IVF,False,False,False,False,False,False,True,6회 이상,0회,1회,2회,0,2.0,0.0,0,1-5,False,0,False,0,본인 제공,배우자 제공,알 수 없음,알 수 없음,True,False,False,False,False,2.0
+만40-42세,IVF,ICSI:Unknown,True,False,False,False,True,False,False,6회 이상,0회,0회,0회,1-5,2.0,2.0,0,0,False,16-20,False,6-10,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,6.0
+만43-44세,IVF,IVF,False,False,False,False,True,False,False,0회,2회,0회,0회,0,2.0,0.0,0,1-5,False,0,False,0,본인 제공,기증 제공,알 수 없음,만41-45세,True,False,False,False,False,0.0
+만43-44세,IVF,ICSI:Unknown,False,False,False,False,False,False,False,5회,0회,0회,0회,0,3.0,0.0,0,1-5,False,1-5,False,1-5,본인 제공,기증 제공,알 수 없음,알 수 없음,True,False,False,False,False,2.0
+만18-34세,IVF,ICSI,False,False,False,False,False,False,False,2회,0회,0회,0회,1-5,1.0,1.0,0,0,False,0,False,6-10,기증 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,3.0
+만43-44세,IVF,ICSI,True,False,False,True,False,False,False,0회,0회,nan,0회,6-10,0.0,0.0,0,0,False,16-20,False,11-15,본인 제공,배우자 제공,알 수 없음,알 수 없음,False,True,False,False,False,nan
+만35-37세,DI,DI,True,True,False,False,False,False,False,0회,3회,4회,0회,nan,nan,nan,nan,0,False,nan,False,nan,알 수 없음,기증 제공,알 수 없음,만21-25세,True,True,True,False,False,nan
+만38-39세,IVF,ICSI:ICSI,True,False,False,False,True,False,False,0회,6회 이상,nan,1회,11-15,2.0,0.0,11-15,0,False,16-20,False,11-15,본인 제공,기증 제공,알 수 없음,만36-40세,False,True,False,False,False,nan
